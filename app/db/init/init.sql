@@ -1,2 +1,0 @@
-CREATE DATABASE `primary`;
-CREATE DATABASE `api_logs`;

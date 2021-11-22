@@ -1,8 +1,0 @@
-.idea/
-composer.lock
-composer.phar
-workspace/
-
-.env
-vendor/
-config/
