@@ -1,0 +1,67 @@
+version: "3.7"
+services:
+  engine:
+    build:
+      context: ../
+      dockerfile: app/services/engine/Dockerfile
+    restart: always
+    volumes:
+      - ../emails:/home/comely-io/engine/emails
+      - ../storage:/home/comely-io/engine/storage
+      - ../tmp:/home/comely-io/engine/tmp
+      - ../log/engine:/home/comely-io/engine/log
+      - ../app/services/engine/vendor:/home/comely-io/engine/vendor
+    env_file:
+      - .env
+    networks:
+      comely-app-net:
+        ipv4_address: 10.0.20.11
+  admin_api:
+    build:
+      context: ../
+      dockerfile: app/services/admin/Dockerfile
+    restart: always
+    volumes:
+      - ../log/admin:/home/comely-io/admin/log
+      - ../emails:/home/comely-io/admin/emails
+      - ../storage:/home/comely-io/admin/storage
+      - ../tmp:/home/comely-io/admin/tmp
+      - ../app/services/admin/vendor:/home/comely-io/admin/vendor
+    env_file:
+      - .env
+    environment:
+      COMELY_APP_DEBUG: 1
+      COMELY_APP_CACHED_CONFIG: "true"
+    ports:
+      - "${ADMIN_PORT}:6000"
+    networks:
+      comely-app-net:
+        ipv4_address: 10.0.20.12
+  public_api:
+    build:
+      context: ../
+      dockerfile: app/services/public/Dockerfile
+    restart: always
+    volumes:
+      - ../log/public:/home/comely-io/public/log
+      - ../emails:/home/comely-io/public/emails
+      - ../storage:/home/comely-io/public/storage
+      - ../tmp:/home/comely-io/public/tmp
+      - ../app/services/public/vendor:/home/comely-io/public/vendor
+    env_file:
+      - .env
+    environment:
+      COMELY_APP_CACHED_CONFIG: "true"
+    ports:
+      - "${API_PORT}:6000"
+    networks:
+      comely-app-net:
+        ipv4_address: 10.0.20.13
+
+# Networks Configuration
+networks:
+  comely-app-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.20.0/27
