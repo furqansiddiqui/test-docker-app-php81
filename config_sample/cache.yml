@@ -1,4 +1,4 @@
-# Cache engine, possible values are: memcached, redis
+# Cache engine, possible values are: redis
 # Set as "~" (null) to not use caching service
 # Recommended caching engine is "redis"
 engine: redis
