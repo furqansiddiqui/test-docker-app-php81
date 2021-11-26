@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Common\Kernel\Config;
 
 use App\Common\Exception\AppConfigException;
+use Comely\Utils\OOP\Traits\NoDumpTrait;
 use Comely\Utils\Validator\Exception\ValidatorException;
 use Comely\Utils\Validator\Validator;
 
@@ -21,6 +22,8 @@ class PublicConfig
     public readonly bool $secure;
     /** @var string */
     public readonly string $email;
+
+    use NoDumpTrait;
 
     /**
      * @param array $config

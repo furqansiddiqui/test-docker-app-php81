@@ -12,6 +12,9 @@ use Comely\Utils\OOP\Traits\NoDumpTrait;
  */
 class CipherKeys
 {
+    /** @var string */
+    public const DEFAULT_KEY = "enter some random words or PRNG entropy here";
+
     /** @var array */
     private array $keys = [];
 
@@ -23,9 +26,11 @@ class CipherKeys
      */
     public function __construct(array $keys)
     {
-        $index = 0;
+        $defaultEntropy = hash("sha256", self::DEFAULT_KEY, true);
 
+        $index = -1;
         foreach ($keys as $label => $entropy) {
+            $index++;
             if (!preg_match('/^\w{2,16}$/', $label)) {
                 throw new AppConfigException(sprintf('Invalid cipher key label at index %d', $index));
             }
@@ -35,10 +40,14 @@ class CipherKeys
             }
 
             if (!preg_match('/^[a-f0-9]{64}$/i', $entropy)) {
-                $entropy = hash("sha256", $entropy);
+                $entropy = hash("sha256", $entropy, true);
             }
 
-            $this->keys[strtolower($label)] = hex2bin($entropy);
+            if ($entropy === $defaultEntropy) {
+                throw new AppConfigException(sprintf('Entropy for cipher key "%s" is insecure', $label));
+            }
+
+            $this->keys[strtolower($label)] = $entropy;
         }
     }
 
