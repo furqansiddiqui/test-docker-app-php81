@@ -18,7 +18,7 @@ use Comely\Utils\OOP\Traits\NotSerializableTrait;
 class Directories
 {
     /** @var Directory */
-    private Directory $root;
+    public readonly Directory $root;
     /** @var Directory|null */
     private ?Directory $config = null;
     /** @var Directory|null */
@@ -47,14 +47,6 @@ class Directories
 
     /**
      * @return Directory
-     */
-    public function root(): Directory
-    {
-        return $this->root;
-    }
-
-    /**
-     * @return Directory
      * @throws AppDirException
      */
     public function config(): Directory
@@ -77,6 +69,19 @@ class Directories
         }
 
         return $this->storage;
+    }
+
+    /**
+     * @return Directory
+     * @throws AppDirException
+     */
+    public function log(): Directory
+    {
+        if (!$this->log) {
+            $this->log = $this->dir("log", "/log", true);
+        }
+
+        return $this->log;
     }
 
     /**
