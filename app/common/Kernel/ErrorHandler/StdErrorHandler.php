@@ -22,8 +22,9 @@ class StdErrorHandler extends AbstractErrorHandler
      */
     public function handleError(ErrorMsg $err): bool
     {
-        $this->aK->errors()->append($err);
+        $this->aK->errors->append($err);
 
+        // Error buffering
         $buffer[] = "";
         $buffer[] = sprintf("\e[36m[%s]\e[0m", date("d-m-Y H:i"));
         $buffer[] = sprintf("\e[33mError:\e[0m \e[31m%s\e[0m", $err->typeStr);
@@ -40,6 +41,12 @@ class StdErrorHandler extends AbstractErrorHandler
 
         $buffer[] = "";
         $this->writeBuffer($buffer, $terminate);
+
+        // Handling
+        if (!in_array($err->type, [2, 8, 512, 1024, 2048, 8192, 16384])) {
+            exit(json_encode(["FatalError" => [$err->typeStr, $err->message]]));
+        }
+
         return true;
     }
 
@@ -50,6 +57,7 @@ class StdErrorHandler extends AbstractErrorHandler
      */
     public function handleThrowable(\Throwable $t): void
     {
+        // Error Buffering
         $buffer[] = "";
         $buffer[] = str_repeat(".", 10);
         $buffer[] = "";
@@ -63,6 +71,9 @@ class StdErrorHandler extends AbstractErrorHandler
         $buffer[] = str_repeat(".", 10);
         $buffer[] = "";
         $this->writeBuffer($buffer, true);
+
+        // Handling
+        exit(json_encode(["FatalError" => [get_class($t), $t->getMessage(), $t->getCode(), $t->getTraceAsString()]]));
     }
 
     /**
@@ -74,7 +85,7 @@ class StdErrorHandler extends AbstractErrorHandler
     private function writeBuffer(array $buffer, bool $terminate = false): void
     {
         if (!$this->errorLogFile) {
-            $this->errorLogFile = $this->aK->dirs()->log()->file("error.log", true);
+            $this->errorLogFile = $this->aK->dirs->log()->file("error.log", true);
         }
 
         $this->errorLogFile->append(implode(PHP_EOL, $buffer));

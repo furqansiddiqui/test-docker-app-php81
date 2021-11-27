@@ -60,27 +60,27 @@ class Errors
     }
 
     /**
-     * @param $message
+     * @param string|\Throwable $message
      * @param int $type
      * @param int $traceLevel
      */
-    final public function trigger($message, int $type = E_USER_NOTICE, int $traceLevel = 1): void
+    final public function trigger(string|\Throwable $message, int $type = E_USER_NOTICE, int $traceLevel = 1): void
     {
         $errorMsg = $this->prepareErrorMsg($message, $type, $traceLevel);
         $errorMsg->triggered = true;
-        $this->aK->errorHandler()->handleError($errorMsg);
+        $this->aK->errorHandler->handleError($errorMsg);
     }
 
     /**
-     * @param $message
+     * @param string|\Throwable $message
      * @param int $type
      * @param int $traceLevel
      */
-    final public function triggerIfDebug($message, int $type = E_USER_NOTICE, int $traceLevel = 1): void
+    final public function triggerIfDebug(string|\Throwable $message, int $type = E_USER_NOTICE, int $traceLevel = 1): void
     {
         $errorMsg = $this->prepareErrorMsg($message, $type, $traceLevel);
         $errorMsg->triggered = $this->aK->isDebug();
-        $this->aK->errorHandler()->handleError($errorMsg);
+        $this->aK->errorHandler->handleError($errorMsg);
     }
 
     /**
@@ -103,7 +103,7 @@ class Errors
             throw new \InvalidArgumentException('Invalid triggered error type');
         }
 
-        $eH = $this->aK->errorHandler();
+        $eH = $this->aK->errorHandler;
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         $error = new ErrorMsg();
         $error->type = $type;

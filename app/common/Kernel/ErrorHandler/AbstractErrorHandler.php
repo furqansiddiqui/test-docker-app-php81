@@ -23,8 +23,16 @@ abstract class AbstractErrorHandler
     use NotSerializableTrait;
     use NotCloneableTrait;
 
+    /**
+     * @param ErrorMsg $err
+     * @return bool
+     */
     abstract public function handleError(ErrorMsg $err): bool;
 
+    /**
+     * return type should be "never", but not supported by phpStorm yet
+     * @param \Throwable $t
+     */
     abstract public function handleThrowable(\Throwable $t): void;
 
     /**
@@ -32,7 +40,7 @@ abstract class AbstractErrorHandler
      */
     final public function __construct(protected AppKernel $aK)
     {
-        $this->pathOffset = strlen($aK->dirs()->root()->path());
+        $this->pathOffset = strlen($aK->dirs->root->path());
         $this->setTraceLevel(E_WARNING);
 
         set_error_handler([$this, "errorHandler"]);
