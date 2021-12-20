@@ -45,7 +45,7 @@ class DataStore extends AbstractAppTable
      */
     public static function Save(string $key, Buffer $data, ?string $raw = null): void
     {
-        if (!Validator::isASCII($key, "-.+@")) {
+        if (!Validator::isASCII($key, "-.+:@")) {
             throw new \InvalidArgumentException('Invalid DataStore object key');
         } elseif ($data->len() > self::DATA_MAX_BYTES) {
             throw new \LengthException(
