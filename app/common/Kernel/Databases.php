@@ -71,8 +71,8 @@ class Databases
         }
 
         if ($dbCred->driver === "mysql") {
-            if ($dbCred->username && !$dbCred->password && $mySqlRootPassword) {
-                $dbCred->login($dbCred->username, $mySqlRootPassword);
+            if ($dbCred->username() && !$dbCred->password() && $mySqlRootPassword) {
+                $dbCred->login($dbCred->username(), $mySqlRootPassword);
             }
         }
 
