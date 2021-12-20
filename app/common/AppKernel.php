@@ -73,7 +73,7 @@ class AppKernel implements AppConstants
     /** @var Memory */
     public readonly Memory $memory;
     /** @var string */
-    public readonly string $timeZone;
+    private string $timeZone;
 
     /** @var \Closure|null */
     private ?\Closure $debugCheckCb = null;
@@ -152,6 +152,14 @@ class AppKernel implements AppConstants
         $this->timeZone = $tz;
         date_default_timezone_set($this->timeZone);
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function timeZone(): string
+    {
+        return $this->timeZone;
     }
 
     /**
@@ -245,7 +253,7 @@ class AppKernel implements AppConstants
         if (!$this->sE) {
             try {
                 $this->sE = new SemaphoreEmulator($this->dirs->sempahore());
-            } catch (AppDirException | SemaphoreEmulatorException $e) {
+            } catch (AppDirException|SemaphoreEmulatorException $e) {
                 $this->errors->trigger($e, E_USER_WARNING);
                 throw new AppException('Failed to get SemaphoreEmulator');
             }
