@@ -30,10 +30,10 @@ abstract class AbstractErrorHandler
     abstract public function handleError(ErrorMsg $err): bool;
 
     /**
-     * return type should be "never", but not supported by phpStorm yet
      * @param \Throwable $t
+     * @return never
      */
-    abstract public function handleThrowable(\Throwable $t): void;
+    abstract public function handleThrowable(\Throwable $t): never;
 
     /**
      * @param AppKernel $aK

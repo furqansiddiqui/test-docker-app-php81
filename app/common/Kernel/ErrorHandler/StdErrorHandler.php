@@ -55,7 +55,7 @@ class StdErrorHandler extends AbstractErrorHandler
      * @throws \App\Common\Exception\AppDirException
      * @throws \Comely\Filesystem\Exception\FilesystemException
      */
-    public function handleThrowable(\Throwable $t): void
+    public function handleThrowable(\Throwable $t): never
     {
         // Error Buffering
         $buffer[] = "";
