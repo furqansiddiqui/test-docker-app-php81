@@ -16,8 +16,8 @@ use Comely\Database\Schema\Table\Constraints;
  */
 class DataStore extends AbstractAppTable
 {
-    public const NAME = 'd_storage';
-    public const MODEL = null;
+    public const TABLE = 'd_storage';
+    public const ORM_CLASS = null;
     public const DATA_MAX_BYTES = 10240; // 10 KiB
 
     /**
@@ -63,6 +63,6 @@ class DataStore extends AbstractAppTable
             "timeStamp" => time()
         ];
 
-        $aK->db->primary()->exec(sprintf($query, self::NAME), $queryData);
+        $aK->db->primary()->exec(sprintf($query, self::TABLE), $queryData);
     }
 }

@@ -63,7 +63,7 @@ abstract class AbstractDataStoreObject
         // Fetch from database
         try {
             $db = $aK->db->primary();
-            $query = $db->query()->table(DataStore::NAME)
+            $query = $db->query()->table(DataStore::TABLE)
                 ->where('`key`=?', [static::DB_KEY])
                 ->limit(1)
                 ->fetch()
