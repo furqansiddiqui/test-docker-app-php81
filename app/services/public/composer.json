@@ -1,0 +1,27 @@
+{
+  "name": "comely-io/abstract-docker-app-public",
+  "minimum-stability": "dev",
+  "require": {
+    "php-64bit": "^8.1",
+    "ext-bcmath": "*",
+    "ext-gmp": "*",
+    "ext-openssl": "*",
+    "comely-io/buffer-php": "0.1.1",
+    "comely-io/cache": "2.0.1",
+    "comely-io/cli": "2.0.1",
+    "comely-io/db-orm": "2.0.3",
+    "comely-io/filesystem": "2.0.0",
+    "comely-io/http": "2.1.0",
+    "comely-io/security": "0.1.0",
+    "comely-io/sessions": "2.0.0",
+    "comely-io/utils": "2.0.4",
+    "comely-io/yaml": "2.0.0",
+    "furqansiddiqui/semaphore-emulator-php": "0.2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\Services\\Public\\": "src/",
+      "App\\Common\\": "common/"
+    }
+  }
+}
