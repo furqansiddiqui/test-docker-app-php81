@@ -66,8 +66,6 @@ class AppKernel implements AppConstants
     public readonly bool $debug;
     /** @var Directories */
     public readonly Directories $dirs;
-    /** @var AbstractErrorHandler */
-    public readonly AbstractErrorHandler $errorHandler;
     /** @var Errors */
     public readonly Errors $errors;
     /** @var Memory */
@@ -75,6 +73,8 @@ class AppKernel implements AppConstants
     /** @var string */
     private string $timeZone;
 
+    /** @var AbstractErrorHandler */
+    private AbstractErrorHandler $eH;
     /** @var \Closure|null */
     private ?\Closure $debugCheckCb = null;
     /** @var SemaphoreEmulator|null */
@@ -134,8 +134,16 @@ class AppKernel implements AppConstants
      */
     public function switchErrorHandler(AbstractErrorHandler $eH): static
     {
-        $this->errorHandler = $eH;
+        $this->eH = $eH;
         return $this;
+    }
+
+    /**
+     * @return AbstractErrorHandler
+     */
+    public function errorHandler(): AbstractErrorHandler
+    {
+        return $this->eH;
     }
 
     /**

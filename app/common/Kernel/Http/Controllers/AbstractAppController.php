@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Common\Kernel\Http\Controllers;
 
-use App\Common\AppKernel;
 use Comely\Http\Router;
 use Comely\Http\Router\AbstractController;
 use Comely\Http\Router\Request;
@@ -14,8 +13,6 @@ use Comely\Http\Router\Request;
  */
 abstract class AbstractAppController extends AbstractController
 {
-    /** @var AppKernel */
-    protected readonly AppKernel $aK;
     /** @var RemoteClient */
     protected readonly RemoteClient $userClient;
 
@@ -41,7 +38,6 @@ abstract class AbstractAppController extends AbstractController
             $remoteClient = new RemoteClient($this->request);
         }
 
-        $this->aK = AppKernel::getInstance();
         $this->userClient = $remoteClient;
     }
 

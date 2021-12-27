@@ -108,6 +108,24 @@ class Validator
     }
 
     /**
+     * @param $ip
+     * @param bool $allowIPv6
+     * @return bool
+     */
+    public static function isValidIP($ip, bool $allowIPv6 = true): bool
+    {
+        if (!is_string($ip) || !$ip) {
+            return false;
+        }
+
+        return (bool)filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            $allowIPv6 ? FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 : FILTER_FLAG_IPV4
+        );
+    }
+
+    /**
      * @param mixed $val
      * @return bool
      */

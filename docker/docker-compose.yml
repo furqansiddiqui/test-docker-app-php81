@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.11
   admin_api:
     build:
@@ -35,7 +35,7 @@ services:
     ports:
       - "${ADMIN_PORT}:6000"
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.12
   public_api:
     build:
@@ -53,14 +53,14 @@ services:
     environment:
       COMELY_APP_CACHED_CONFIG: "true"
     ports:
-      - "${API_PORT}:6000"
+      - "${PUBLIC_PORT}:6000"
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.13
 
 # Networks Configuration
 networks:
-  comely-app-net:
+  comely-app-vlan:
     driver: bridge
     ipam:
       config:
