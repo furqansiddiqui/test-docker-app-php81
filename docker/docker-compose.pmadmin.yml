@@ -10,5 +10,5 @@ services:
     ports:
       - "${PMA_LISTEN:-36001}:80"
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.9

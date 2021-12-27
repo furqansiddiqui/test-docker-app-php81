@@ -11,7 +11,7 @@ services:
       - ../app/db/init:/docker-entrypoint-initdb.d
       - comely-app-db:/var/lib/mysql
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.2
   redis:
     build:
@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     networks:
-      comely-app-net:
+      comely-app-vlan:
         ipv4_address: 10.0.20.3
 
 # Volumes Configuration
