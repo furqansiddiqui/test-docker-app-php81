@@ -79,6 +79,8 @@ class AppKernel implements AppConstants
     private ?\Closure $debugCheckCb = null;
     /** @var SemaphoreEmulator|null */
     private ?SemaphoreEmulator $sE = null;
+    /** @var float */
+    public readonly float $bootstrapLoad;
 
     /**
      * @throws AppConfigException
@@ -87,6 +89,7 @@ class AppKernel implements AppConstants
      */
     protected function __construct()
     {
+        $start = microtime(true);
         $this->debug = Validator::getBool(trim(strval(getenv("COMELY_APP_DEBUG"))));
         $this->dirs = new Directories();
         $this->errors = new Errors($this);
@@ -126,6 +129,8 @@ class AppKernel implements AppConstants
                 }
             }
         }
+
+        $this->bootstrapLoad = microtime(true) - $start;
     }
 
     /**
