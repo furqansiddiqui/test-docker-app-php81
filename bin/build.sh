@@ -46,6 +46,10 @@ truncate -s 0 log/admin/*.log
 truncate -s 0 log/public/*.log
 truncate -s 0 log/engine/*.log
 
+rm -rf app/services/public/vendor
+rm -rf app/services/admin/vendor
+rm -rf app/services/engine/vendor
+
 cp .env docker/.env
 cd docker/
 DOCKER_COMPOSE_FILE="docker-compose.$DOCKER_COMPOSE.yml";
