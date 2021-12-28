@@ -38,6 +38,8 @@ class CacheConfig
             }
         }
 
+        $this->engine = $engine;
+
         // Validators
         $hostnameValidator = Validator::ASCII()->setCustomFn(function (string $hostname) {
             return \App\Common\Validator::isValidHostname($hostname, allowIpAddr: true) ? $hostname : false;
