@@ -32,7 +32,6 @@ class StdErrorHandler extends AbstractErrorHandler
         $buffer[] = sprintf("\e[33mFile:\e[0m \e[34m%s\e[0m", $err->file);
         $buffer[] = sprintf("\e[33mLine:\e[0m \e[36m%d\e[0m", $err->line);
 
-        $terminate = !in_array($err->type, [2, 8, 512, 1024, 2048, 8192, 16384]);
         $includeTrace = $err->type <= $this->traceLevel;
         if ($includeTrace) {
             $trace = array_slice(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 3);
@@ -40,7 +39,7 @@ class StdErrorHandler extends AbstractErrorHandler
         }
 
         $buffer[] = "";
-        $this->writeBuffer($buffer, $terminate);
+        $this->writeBuffer($buffer);
 
         // Handling
         if (!in_array($err->type, [2, 8, 512, 1024, 2048, 8192, 16384])) {
@@ -70,7 +69,7 @@ class StdErrorHandler extends AbstractErrorHandler
         $buffer[] = "";
         $buffer[] = str_repeat(".", 10);
         $buffer[] = "";
-        $this->writeBuffer($buffer, true);
+        $this->writeBuffer($buffer);
 
         // Handling
         exit(json_encode(["FatalError" => [get_class($t), $t->getMessage(), $t->getCode(), $t->getTraceAsString()]]));
@@ -78,20 +77,17 @@ class StdErrorHandler extends AbstractErrorHandler
 
     /**
      * @param array $buffer
-     * @param bool $terminate
+     * @return void
      * @throws \App\Common\Exception\AppDirException
      * @throws \Comely\Filesystem\Exception\FilesystemException
      */
-    private function writeBuffer(array $buffer, bool $terminate = false): void
+    private function writeBuffer(array $buffer): void
     {
         if (!$this->errorLogFile) {
             $this->errorLogFile = $this->aK->dirs->log()->file("error.log", true);
         }
 
         $this->errorLogFile->append(implode(PHP_EOL, $buffer));
-        if ($terminate) {
-            exit;
-        }
     }
 
     /**
