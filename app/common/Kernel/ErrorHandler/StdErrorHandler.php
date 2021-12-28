@@ -72,7 +72,13 @@ class StdErrorHandler extends AbstractErrorHandler
         $this->writeBuffer($buffer);
 
         // Handling
-        exit(json_encode(["FatalError" => [get_class($t), $t->getMessage(), $t->getCode(), $t->getTraceAsString()]]));
+        exit(json_encode(["FatalError" => [
+            "class" => get_class($t),
+            "message" => $t->getMessage(),
+            "code" => $t->getCode(),
+            "file" => $t->getFile() . ":" . $t->getLine(),
+            "trace" => $t->getTraceAsString()
+        ]]));
     }
 
     /**
