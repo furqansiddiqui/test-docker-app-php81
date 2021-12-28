@@ -26,6 +26,9 @@ abstract class AbstractPublicAPIController extends AbstractAppController
      */
     public function callback(): void
     {
+        // AppKernel instance
+        $this->aK = PublicAPIService::getInstance();
+
         // Default response type (despite any ACCEPT header)
         $this->response->header("content-type", "application/json");
 
