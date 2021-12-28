@@ -40,6 +40,12 @@ if [[ ! -f "$DOCKER_ENV_FILE" ]]; then
   exit
 fi
 
+./bin/services.sh down
+
+truncate -s 0 log/admin/*.log
+truncate -s 0 log/public/*.log
+truncate -s 0 log/engine/*.log
+
 cp .env docker/.env
 cd docker/
 DOCKER_COMPOSE_FILE="docker-compose.$DOCKER_COMPOSE.yml";
