@@ -34,13 +34,13 @@ class Config
      * @throws \App\Common\Exception\AppDirException
      * @throws \Comely\Yaml\Exception\ParserException
      */
-    public function __construct(private AppKernel $aK)
+    public function __construct(AppKernel $aK)
     {
         // Environment Configuration Vars
         $this->env = new EnvConfig();
 
         // App YAML Configurations Files
-        $configsPath = $this->aK->dirs->config()->path();
+        $configsPath = $aK->dirs->config()->path();
 
         $this->cache = new CacheConfig(Yaml::Parse($configsPath . "/cache.yml")->generate());
         $this->cipher = new CipherKeys(Yaml::Parse($configsPath . "/cipher.yml")->generate());
