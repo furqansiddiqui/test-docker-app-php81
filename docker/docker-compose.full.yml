@@ -15,7 +15,7 @@ services:
         ipv4_address: 10.0.20.2
   redis:
     build:
-      context: ../app/redis
+      context: ../app/services/redis
       dockerfile: Dockerfile
     restart: always
     networks:
