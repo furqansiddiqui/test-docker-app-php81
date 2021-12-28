@@ -32,13 +32,13 @@ abstract class AbstractAppController extends AbstractController
         ?RemoteClient       $remoteClient = null
     )
     {
-        parent::__construct($router, $request, $prev, $entryPoint);
-
         if (!$remoteClient) {
             $remoteClient = new RemoteClient($this->request);
         }
 
         $this->userClient = $remoteClient;
+
+        parent::__construct($router, $request, $prev, $entryPoint);
     }
 
     /**
