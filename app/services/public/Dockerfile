@@ -39,6 +39,7 @@ COPY ./app/services/public/www public/www/
 
 USER root
 RUN chown -R comely-io:comely-io /home/comely-io/
+RUN chmod +x /home/comely-io
 
 USER root
 WORKDIR /root
