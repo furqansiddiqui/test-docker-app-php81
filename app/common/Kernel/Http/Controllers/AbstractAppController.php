@@ -33,7 +33,7 @@ abstract class AbstractAppController extends AbstractController
     )
     {
         if (!$remoteClient) {
-            $remoteClient = new RemoteClient($this->request);
+            $remoteClient = new RemoteClient($request);
         }
 
         $this->userClient = $remoteClient;
