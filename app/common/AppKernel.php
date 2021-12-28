@@ -79,8 +79,6 @@ class AppKernel implements AppConstants
     private ?\Closure $debugCheckCb = null;
     /** @var SemaphoreEmulator|null */
     private ?SemaphoreEmulator $sE = null;
-    /** @var float */
-    public readonly float $bootstrapLoad;
 
     /**
      * @throws AppConfigException
@@ -89,7 +87,6 @@ class AppKernel implements AppConstants
      */
     protected function __construct()
     {
-        $start = microtime(true);
         $this->debug = Validator::getBool(trim(strval(getenv("COMELY_APP_DEBUG"))));
         $this->dirs = new Directories();
         $this->errors = new Errors($this);
@@ -129,8 +126,6 @@ class AppKernel implements AppConstants
                 }
             }
         }
-
-        $this->bootstrapLoad = microtime(true) - $start;
     }
 
     /**
@@ -221,9 +216,13 @@ class AppKernel implements AppConstants
         $appConfig = new Config($this);
         if ($cachedConfig) {
             try {
+                $clonedConfig = clone $appConfig;
+                $clonedConfig->cachedOn = time();
                 $this->dirs->tmp()
                     ->file("comely-appConfig.php.cache", true)
-                    ->edit(serialize($appConfig), true);
+                    ->edit(serialize($clonedConfig), true);
+
+                unset($clonedConfig);
             } catch (\Exception $e) {
                 trigger_error('Failed to write cached configuration', E_USER_WARNING);
                 if ($this->debug) {

@@ -22,6 +22,6 @@ class Hello extends AbstractPublicAPIController
     {
         $this->status(true);
         $this->response->set("message", "Hello World!");
-        $this->response->set("appKernelBootstrap", $this->aK->bootstrapLoad);
+        $this->response->set("kernelConfigCachedOn", $this->aK->config->cachedOn);
     }
 }

@@ -27,6 +27,8 @@ class Config
     public readonly DbConfig $db;
     /** @var PublicConfig */
     public readonly PublicConfig $public;
+    /** @var int|null */
+    public ?int $cachedOn = null;
 
     /**
      * @param AppKernel $aK
