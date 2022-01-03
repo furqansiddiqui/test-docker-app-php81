@@ -8,7 +8,7 @@
     "ext-openssl": "*",
     "comely-io/buffer-php": "0.1.1",
     "comely-io/cache": "2.0.2",
-    "comely-io/cli": "2.0.1",
+    "comely-io/cli": "2.0.2",
     "comely-io/db-orm": "2.0.3",
     "comely-io/filesystem": "2.0.1",
     "comely-io/http": "2.1.0",
