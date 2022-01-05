@@ -9,7 +9,6 @@ use App\Common\Exception\AppException;
 use Comely\Buffer\Buffer;
 use Comely\Security\Cipher;
 use Comely\Security\Exception\CipherException;
-use Comely\Utils\OOP\Traits\NotSerializableTrait;
 
 /**
  * Class Administrator
