@@ -29,6 +29,7 @@ class deploy_db extends AbstractCLIScript
         $this->createDbTables($primary, [
             'App\Common\Database\Primary\Administrators',
             'App\Common\Database\Primary\Admin\Logs',
+            'App\Common\Database\Primary\Admin\Sessions',
             'App\Common\Database\Primary\DataStore',
             'App\Common\Database\Primary\ProcessTracker',
         ]);
