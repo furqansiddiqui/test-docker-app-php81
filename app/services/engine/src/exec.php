@@ -17,9 +17,6 @@ try {
     $bin = new \Comely\Filesystem\Directory(__DIR__ . DIRECTORY_SEPARATOR . "scripts");
     $cli = new \App\Common\Kernel\CLI($aK, $bin, $args);
 
-    // Listen to events, etc...
-    $cli->events->beforeExec();
-
     // Execute
     $cli->exec();
 } catch (Exception $e) {
