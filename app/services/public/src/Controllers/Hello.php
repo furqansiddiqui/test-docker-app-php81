@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace App\Services\Public\Controllers;
 
-use App\Services\Public\AbstractPublicAPIController;
-
 /**
  * Class Hello
  * @package App\Services\Public\Controllers
