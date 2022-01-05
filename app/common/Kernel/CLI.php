@@ -73,7 +73,7 @@ class CLI extends \Comely\CLI\CLI
             }
         });
 
-        $this->events->afterExec()->listen(function (AbstractCLIScript $script, bool $isSuccess) {
+        $this->events->afterExec()->listen(function (self $cli, bool $isSuccess) {
             // Process tracker
             if ($this->processTracker) {
                 $this->processTracker->state = $isSuccess ? ProcessTracker::STATE_END_SUCCESS : ProcessTracker::STATE_END_ERROR;
