@@ -1,5 +1,5 @@
 {
-  "name": "comely-io/abstract-docker-app-public",
+  "name": "comely-io/abstract-docker-app-admin",
   "minimum-stability": "dev",
   "require": {
     "php-64bit": "^8.1",
@@ -20,7 +20,7 @@
   },
   "autoload": {
     "psr-4": {
-      "App\\Services\\Public\\": "src/",
+      "App\\Services\\Admin\\": "src/",
       "App\\Common\\": "common/"
     }
   }
