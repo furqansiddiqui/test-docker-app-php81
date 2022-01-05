@@ -24,11 +24,11 @@ COPY ./config config/
 COPY ./app/common common/
 COPY ./app/services/engine/composer.json composer.json
 COPY ./app/services/engine/src src/
-RUN chmod +x src/console
+
 
 USER root
 RUN chown -R comely-io:comely-io /home/comely-io/
-RUN chmod +x /home/comely-io
+RUN chmod +x /home/comely-io/engine/src/console
 
 USER root
 WORKDIR /root
