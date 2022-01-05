@@ -40,8 +40,6 @@ class Administrator extends AbstractAppModel
     /** @var bool|null */
     private ?bool $_checksumValidated = null;
 
-    use NotSerializableTrait;
-
     /**
      * @return Buffer
      * @throws AppException
