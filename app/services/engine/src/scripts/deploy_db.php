@@ -60,7 +60,7 @@ class deploy_db extends AbstractCLIScript
         $this->print("{grey}Fetching tables... {/}");
         foreach ($tables as $tableClass) {
             $this->inline(sprintf('{cyan}%s{/} ... ', $tableClass));
-            $tableName = constant(sprintf('%s::NAME', $tableClass));
+            $tableName = constant(sprintf('%s::TABLE', $tableClass));
             Schema::Bind($db, $tableClass);
             $loaded[] = $tableName;
             $this->print("{green}OK{/}");
