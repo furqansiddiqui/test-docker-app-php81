@@ -75,3 +75,4 @@ cd ../' > engine.sh
 
 chmod +x engine.sh
 ./bin/services.sh ps
+./engine.sh install

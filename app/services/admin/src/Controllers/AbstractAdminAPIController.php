@@ -1,25 +1,26 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Services\Public;
+namespace App\Services\Admin\Controllers;
 
 use App\Common\Exception\AppControllerException;
 use App\Common\Kernel\Http\Controllers\AbstractAppController;
 use App\Common\Validator;
-use App\Services\Public\Exception\PublicAPIException;
+use App\Services\Admin\AdminAPIService;
+use App\Services\Admin\Exception\AdminAPIException;
 
 /**
- * Class AbstractPublicAPIController
+ * Class AbstractAdminAPIController
  * @method get(): void
  * @method post(): void
  * @method put(): void
  * @method delete(): void
  * @package App\Services\Public
  */
-abstract class AbstractPublicAPIController extends AbstractAppController
+abstract class AbstractAdminAPIController extends AbstractAppController
 {
-    /** @var PublicAPIService */
-    protected readonly PublicAPIService $aK;
+    /** @var AdminAPIService */
+    protected readonly AdminAPIService $aK;
 
     /**
      * @return void
@@ -27,7 +28,7 @@ abstract class AbstractPublicAPIController extends AbstractAppController
     public function callback(): void
     {
         // AppKernel instance
-        $this->aK = PublicAPIService::getInstance();
+        $this->aK = AdminAPIService::getInstance();
 
         // Default response type (despite any ACCEPT header)
         $this->response->header("content-type", "application/json");
@@ -58,7 +59,7 @@ abstract class AbstractPublicAPIController extends AbstractAppController
             $this->response->set("status", false);
             $this->response->set("error", $e->getMessage());
 
-            if ($e instanceof PublicAPIException) {
+            if ($e instanceof AdminAPIException) {
                 $param = $e->getParam();
                 if ($param) {
                     $this->response->set("param", $param);
@@ -96,23 +97,23 @@ abstract class AbstractPublicAPIController extends AbstractAppController
 
     /**
      * @return void
-     * @throws PublicAPIException
+     * @throws AdminAPIException
      */
     final protected function onLoad(): void
     {
         // Validate IP Address
         if (!Validator::isValidIP($this->userClient->ipAddress)) {
-            throw new PublicAPIException('INVALID_IP_ADDRESS');
+            throw new AdminAPIException('INVALID_IP_ADDRESS');
         }
 
         // Public API callback
-        $this->publicAPICallback();
+        $this->adminAPICallback();
     }
 
     /**
      * @return void
      */
-    abstract protected function publicAPICallback(): void;
+    abstract protected function adminAPICallback(): void;
 
     /**
      * @return void
