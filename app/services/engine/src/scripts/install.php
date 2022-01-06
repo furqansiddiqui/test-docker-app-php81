@@ -32,7 +32,7 @@ class install extends abstract_db_builder_script
 
         // Check if administrator account exists
         try {
-            $admins = Administrators::Find()->limit(1)->all();
+            $admins = Administrators::Find()->query("WHERE 1")->limit(1)->all();
         } catch (ORM_ModelNotFoundException) {
             $admins = [];
         }
