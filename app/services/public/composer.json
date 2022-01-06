@@ -12,7 +12,7 @@
     "comely-io/db-orm": "2.0.4",
     "comely-io/filesystem": "2.0.1",
     "comely-io/http": "2.1.0",
-    "comely-io/security": "0.1.0",
+    "comely-io/security": "0.1.1",
     "comely-io/sessions": "2.0.0",
     "comely-io/utils": "2.0.4",
     "comely-io/yaml": "2.0.0",
