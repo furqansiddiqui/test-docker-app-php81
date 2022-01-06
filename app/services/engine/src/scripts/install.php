@@ -44,11 +44,11 @@ class install extends abstract_db_builder_script
         }
 
         // Create admin account
-        $this->print("Creating an administration account...");
+        $this->print("{grey}Creating an administration account...");
         $adminEmail = null;
         $adminPassword = null;
         while (!$adminEmail) {
-            $inputEmail = trim(strval($this->requireInput("E-mail Address:{yellow}")));
+            $inputEmail = trim(strval($this->requireInput("E-mail Address:{cyan}")));
             if (Validator::isValidEmailAddress($inputEmail)) {
                 $adminEmail = $inputEmail;
                 break;
@@ -58,7 +58,7 @@ class install extends abstract_db_builder_script
         }
 
         while (!$adminPassword) {
-            $inputPassword = trim(strval($this->requireInput("Password:{cyan}")));
+            $inputPassword = trim(strval($this->requireInput("{/}Password:{yellow}")));
             $pwLen = strlen($inputPassword);
             try {
                 if (!ASCII::isPrintableOnly($inputPassword)) {
