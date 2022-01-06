@@ -77,7 +77,7 @@ chmod +x engine.sh
 ./bin/services.sh ps
 
 echo -e "";
-echo -e "Waiting for services to come online...";
+echo -e "\e[33mWaiting for services to come online...\e[0m";
 
 SERVICE_PUBLIC_API_ID=`./bin/services.sh ps -q public_api`
 SERVICE_ADMIN_API_ID=`./bin/services.sh ps -q admin_api`
