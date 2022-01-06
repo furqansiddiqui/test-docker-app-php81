@@ -26,7 +26,7 @@ class Administrator extends AbstractAppModel
     /** @var string */
     public string $email;
     /** @var string|null */
-    public ?string $phone;
+    public ?string $phone = null;
     /** @var int */
     public int $timeStamp;
 
