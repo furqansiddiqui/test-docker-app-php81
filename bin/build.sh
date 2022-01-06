@@ -75,4 +75,18 @@ cd ../' > engine.sh
 
 chmod +x engine.sh
 ./bin/services.sh ps
+
+echo -e "";
+echo -e "Waiting for services to come online...";
+
+SERVICE_PUBLIC_API_ID=`./bin/services.sh ps -q public_api`
+SERVICE_ADMIN_API_ID=`./bin/services.sh ps -q admin_api`
+SERVICE_ENGINE_ID=`./bin/services.sh ps -q engine`
+
+while [ "`docker inspect -f {{.State.Running}} $SERVICE_ENGINE_ID`" != "true" ]; do     sleep 1; done
+while [ "`docker inspect -f {{.State.Running}} $SERVICE_PUBLIC_API_ID`" != "true" ]; do     sleep 1; done
+while [ "`docker inspect -f {{.State.Running}} $SERVICE_ADMIN_API_ID`" != "true" ]; do     sleep 1; done
+
+echo -e "";
+sleep 6;
 ./engine.sh install
