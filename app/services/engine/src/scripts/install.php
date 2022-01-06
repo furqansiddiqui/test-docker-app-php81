@@ -48,17 +48,17 @@ class install extends abstract_db_builder_script
         $adminEmail = null;
         $adminPassword = null;
         while (!$adminEmail) {
-            $inputEmail = trim(strval($this->requireInput("{yellow}Administrator E-mail Address?{/} {cyan}")));
+            $inputEmail = trim(strval($this->requireInput("E-mail Address:{yellow}")));
             if (Validator::isValidEmailAddress($inputEmail)) {
                 $adminEmail = $inputEmail;
                 break;
             }
 
-            $this->print("{red}Invalid e-mail address")->eol();
+            $this->print("\t{red}Invalid e-mail address")->eol();
         }
 
         while (!$adminPassword) {
-            $inputPassword = trim(strval($this->requireInput("{yellow}Password:{/} {cyan}")));
+            $inputPassword = trim(strval($this->requireInput("Password:{cyan}")));
             $pwLen = strlen($inputPassword);
             try {
                 if (!ASCII::isPrintableOnly($inputPassword)) {
@@ -67,7 +67,7 @@ class install extends abstract_db_builder_script
                     throw new \RuntimeException('Password must be between 8 to 32 characters log');
                 }
             } catch (\RuntimeException $e) {
-                $this->print("{red}" . $e->getMessage())->eol();
+                $this->print("\t{red}" . $e->getMessage())->eol();
                 continue;
             }
 
