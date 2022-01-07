@@ -37,7 +37,9 @@ class Administrators extends AbstractAppTable
         $cols->binary("credentials")->length(4096);
         $cols->binary("privileges")->length(4096)->nullable();
         $cols->binary("web_auth_session")->fixed(32)->nullable();
+        $cols->string("web_auth_secret")->fixed(16)->nullable();
         $cols->binary("app_auth_session")->fixed(32)->nullable();
+        $cols->string("app_auth_secret")->fixed(16)->nullable();
         $cols->int("time_stamp")->bytes(4)->unSigned();
         $cols->primaryKey("id");
     }
