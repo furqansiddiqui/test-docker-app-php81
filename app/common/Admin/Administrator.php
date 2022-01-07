@@ -47,7 +47,7 @@ class Administrator extends AbstractAppModel
     {
         try {
             $raw = sprintf("%d:%d:%s:%s", $this->id, $this->status, trim($this->email), trim($this->phone ?? ""));
-            return $this->cipher()->pbkdf2("sha1", $raw, 1000);
+            return $this->cipher()->pbkdf2("sha1", $raw, 1000 + $this->id);
         } catch (CipherException $e) {
             $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
             throw new AppException(sprintf('Failed to calculate admin %d checksum', $this->id));

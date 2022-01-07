@@ -9,7 +9,7 @@ try {
     $router = $aK->http->router;
 
     $defaultRoute = $router->route('/*', 'App\Services\Admin\Controllers\*')
-        ->fallbackController('App\Services\Admin\Controllers\Test');
+        ->fallbackController('App\Services\Admin\Controllers\Signin');
 
     \Comely\Http\RESTful::Request($router, function (\Comely\Http\Router\AbstractController $page) use ($router) {
         $router->response->send($page);

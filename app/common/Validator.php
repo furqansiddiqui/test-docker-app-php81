@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace App\Common;
 
+use App\Services\Admin\Exception\AdminAPIException;
+use Comely\Security\Passwords;
+use Comely\Utils\Validator\ASCII_Validator;
 use Comely\Utils\Validator\StringValidator;
 
 /**
@@ -39,6 +42,26 @@ class Validator
             ->len(min: 9, max: $maxLength)
             ->setCustomFn(function (string $addr) {
                 return self::isValidEmailAddress($addr) ? $addr : false;
+            });
+    }
+
+    /**
+     * @param int $minLen
+     * @param int $maxLen
+     * @param int $minStrength
+     * @return ASCII_Validator
+     */
+    public static function Password(int $minLen = 8, int $maxLen = 32, int $minStrength = 4): ASCII_Validator
+    {
+        return \Comely\Utils\Validator\Validator::ASCII()->trim()->lowerCase()
+            ->cleanSpaces()
+            ->len(min: $minLen, max: $maxLen)
+            ->setCustomFn(function (string $password) use ($minStrength) {
+                if (Passwords::Strength($password) >= $minStrength) {
+                    return $password;
+                }
+
+                return false;
             });
     }
 
