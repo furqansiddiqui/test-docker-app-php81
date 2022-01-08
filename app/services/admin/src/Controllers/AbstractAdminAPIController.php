@@ -84,21 +84,25 @@ abstract class AbstractAdminAPIController extends AbstractAppController
             call_user_func([$this, $httpRequestMethod]);
         } catch (\Exception $e) {
             $this->response->set("status", false);
-            $this->response->set("error", $e->getMessage());
+            $exception = [
+                "message" => $e->getMessage()
+            ];
 
             if ($e instanceof AdminAPIException) {
                 $param = $e->getParam();
                 if ($param) {
-                    $this->response->set("param", $param);
+                    $exception["param"] = $param;
                 }
             }
 
             if ($this->aK->isDebug()) {
-                $this->response->set("caught", get_class($e));
-                $this->response->set("file", $e->getFile());
-                $this->response->set("line", $e->getLine());
-                $this->response->set("trace", $this->getExceptionTrace($e));
+                $exception["caught"] = get_class($e);
+                $exception["file"] = $e->getFile();
+                $exception["line"] = $e->getLine();
+                $exception["trace"] = $this->getExceptionTrace($e);
             }
+
+            $this->response->set("exception", $exception);
         }
 
         $displayErrors = $this->aK->isDebug() ?
@@ -106,7 +110,7 @@ abstract class AbstractAdminAPIController extends AbstractAppController
             $this->aK->errors->triggered()->array();
 
         if ($displayErrors) {
-            $this->response->set("errors", $displayErrors); // Errors
+            $this->response->set("warnings", $displayErrors); // Errors
         }
 
         $this->onFinish(); // Event callback: onFinish
