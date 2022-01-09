@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace App\Services\Admin\Controllers\Auth;
 
+use App\Common\Kernel\Docker\DockerConfig;
+use App\Common\Validator;
 use App\Services\Admin\Controllers\AbstractAdminAPIController;
-use App\Services\Admin\Models\DockerConfig;
+use App\Services\Admin\Exception\AdminAPIException;
 
 /**
  * Class Docker
@@ -17,8 +19,22 @@ class Docker extends AbstractAdminAPIController
         // Todo: change to authenticated API type
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws \App\Common\Exception\DockerConfigException
+     * @throws \Comely\Filesystem\Exception\PathException
+     * @throws \Comely\Yaml\Exception\ParserException
+     */
     protected function get(): void
     {
-        $dockerConfig = new DockerConfig($this->aK);
+        try {
+            $dockerConfig = Validator::JSON_Filter(new DockerConfig($this->aK));
+        } catch (\JsonException) {
+            throw new AdminAPIException('Failed to encode DockerConfig object');
+        }
+
+        $this->status(true);
+        $this->response->set("docker", $dockerConfig);
     }
 }
