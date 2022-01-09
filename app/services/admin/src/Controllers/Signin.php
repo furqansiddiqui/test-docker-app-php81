@@ -126,7 +126,7 @@ class Signin extends AbstractAdminAPIController
 
             $session->query()->insert();
 
-            $session->id = $db->lastInsertId() +100;
+            $session->id = $db->lastInsertId();
             $session->set("checksum", $session->checksum()->raw());
             $session->query()->where("id", $session->id)->update();
 
