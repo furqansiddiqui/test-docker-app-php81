@@ -101,7 +101,7 @@ namespace App\Common\Kernel\Docker {
                         $this->network->driver = $network["driver"] ?? "";
 
                         $nCsn = null;
-                        $nC = $network["ipam"]["config"][0] ?? "";
+                        $nC = $network["ipam"]["config"] ?? "";
                         if (is_array($nC)) {
                             foreach ($nC as $nCE) {
                                 if (is_string($nCE) && preg_match('/^subnet:/i', $nCE)) {
@@ -154,7 +154,7 @@ namespace App\Common\Kernel\Docker {
                                     $service->externalPort = intval($sCPout);
                                 } elseif (preg_match('/^[0-9]+(\.[0-9]+){3}:[0-9]{2,5}$/', $sCPout)) {
                                     $service->externalPort = $sCPout;
-                                } elseif (preg_match('/^{$\w+}$/i', $sCPout)) {
+                                } elseif (preg_match('/^\${\w+}$/i', $sCPout)) {
                                     $sCPout = OOP::camelCase(substr($sCPout, 2, -1));
                                     if (isset($aK->config->env->$sCPout)) {
                                         $service->externalPort = $aK->config->env->$sCPout;
@@ -171,7 +171,7 @@ namespace App\Common\Kernel\Docker {
                         }
 
                         if (isset($sC["environment"]["COMELY_APP_CACHED_CONFIG"])) {
-                            $service->appDebug = Validator::getBool($sC["environment"]["COMELY_APP_CACHED_CONFIG"]);
+                            $service->appCachedConfig = Validator::getBool($sC["environment"]["COMELY_APP_CACHED_CONFIG"]);
                         }
                     }
 

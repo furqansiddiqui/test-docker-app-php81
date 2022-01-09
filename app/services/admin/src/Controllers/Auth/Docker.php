@@ -29,7 +29,7 @@ class Docker extends AbstractAdminAPIController
     protected function get(): void
     {
         try {
-            $dockerConfig = Validator::JSON_Filter(new DockerConfig($this->aK));
+            $dockerConfig = Validator::JSON_Filter(DockerConfig::getInstance($this->aK, useCache: true));
         } catch (\JsonException) {
             throw new AdminAPIException('Failed to encode DockerConfig object');
         }
