@@ -17,11 +17,11 @@ class AdminAPIException extends AppControllerException
     /**
      * @param string $param
      * @param string $msg
-     * @param int|null $code
+     * @param int $code
      * @param \Throwable|null $prev
      * @return static
      */
-    public static function Param(string $param, string $msg, ?int $code = null, ?\Throwable $prev = null): static
+    public static function Param(string $param, string $msg, int $code = 0, ?\Throwable $prev = null): static
     {
         return (new self($msg, $code, $prev))->setParam($param);
     }
