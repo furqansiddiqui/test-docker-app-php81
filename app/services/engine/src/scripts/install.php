@@ -10,6 +10,7 @@ use App\Common\AppConstants;
 use App\Common\Database\Primary\Administrators;
 use App\Common\Validator;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
+use Comely\Security\Passwords;
 use Comely\Utils\ASCII;
 
 /**
@@ -65,6 +66,8 @@ class install extends abstract_db_builder_script
                     throw new \RuntimeException('Password contains an invalid character');
                 } elseif ($pwLen < 8 || $pwLen > 32) {
                     throw new \RuntimeException('Password must be between 8 to 32 characters log');
+                } elseif (Passwords::Strength($inputPassword) < 4) {
+                    throw new \RuntimeException('Password is not strong enough');
                 }
             } catch (\RuntimeException $e) {
                 $this->print("\t{red}" . $e->getMessage())->eol();
