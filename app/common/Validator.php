@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Common;
 
+use App\Common\Exception\AppException;
 use App\Services\Admin\Exception\AdminAPIException;
 use Comely\Security\Passwords;
 use Comely\Utils\Validator\ASCII_Validator;
@@ -167,5 +168,19 @@ class Validator
         }
 
         return false;
+    }
+
+    /**
+     * @param object $obj
+     * @return array
+     * @throws \JsonException
+     */
+    public static function JSON_Filter(object $obj): array
+    {
+        return json_decode(
+            json_encode($obj, JSON_THROW_ON_ERROR),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
     }
 }

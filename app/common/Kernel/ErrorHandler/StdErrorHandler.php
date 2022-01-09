@@ -43,6 +43,7 @@ class StdErrorHandler extends AbstractErrorHandler
 
         // Handling
         if (!in_array($err->type, [2, 8, 512, 1024, 2048, 8192, 16384])) {
+            header("Content-Type: application/json", response_code: 500);
             exit(json_encode(["FatalError" => [$err->typeStr, $err->message]]));
         }
 
@@ -72,6 +73,7 @@ class StdErrorHandler extends AbstractErrorHandler
         $this->writeBuffer($buffer);
 
         // Handling
+        header("Content-Type: application/json", response_code: 500);
         exit(json_encode(["FatalError" => [
             "class" => get_class($t),
             "message" => $t->getMessage(),
