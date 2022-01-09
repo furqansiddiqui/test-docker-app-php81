@@ -32,7 +32,7 @@ class RemoteClient
 
         // Cloudflare OR X-Forwarded-For IP Address
         if ($req->headers->has("cf-connecting-ip")) {
-            $userIpAddr = $req->headers->get("cf-connecting_-ip");
+            $userIpAddr = $req->headers->get("cf-connecting-ip");
         } elseif ($req->headers->has("x-forwarded-for")) {
             $xff = explode(",", $req->headers->get("x-forwarded-for"));
             $userIpAddr = trim(preg_replace('/[^a-f0-9.:]/', '', strtolower($xff[0])));
