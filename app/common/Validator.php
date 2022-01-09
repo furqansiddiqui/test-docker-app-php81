@@ -54,7 +54,7 @@ class Validator
      */
     public static function Password(int $minLen = 8, int $maxLen = 32, int $minStrength = 4): ASCII_Validator
     {
-        return \Comely\Utils\Validator\Validator::ASCII()->trim()->lowerCase()
+        return \Comely\Utils\Validator\Validator::ASCII()->trim()
             ->cleanSpaces()
             ->len(min: $minLen, max: $maxLen)
             ->setCustomFn(function (string $password) use ($minStrength) {
