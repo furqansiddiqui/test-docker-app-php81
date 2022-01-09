@@ -77,7 +77,7 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
      */
     private function validateUserSignature(array $excludeBodyParams = []): void
     {
-        $userSecret = $this->admin->private($this->session->type . "_auth_secret");
+        $userSecret = strval($this->admin->private($this->session->type . "AuthSecret"));
         if (strlen($userSecret) !== 16) {
             throw new AdminAPIException('No secret value set for administrator HMAC');
         }
