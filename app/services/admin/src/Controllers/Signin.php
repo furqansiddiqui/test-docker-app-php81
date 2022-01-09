@@ -136,6 +136,7 @@ class Signin extends AbstractAdminAPIController
             $admin->query()->update();
 
             Logs::Insert($admin, $this->ipAddress, "Logged In", flags: ["signin", "auth"]);
+            $db->commit();
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
