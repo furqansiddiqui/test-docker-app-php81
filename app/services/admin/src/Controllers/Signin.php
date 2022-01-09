@@ -45,6 +45,7 @@ class Signin extends AbstractAdminAPIController
     public function post(): void
     {
         $emailValidator = Validator::EmailAddress();
+        $passwordValidator = Validator::Password();
 
         try {
             $email = $emailValidator->getValidated($this->input()->getASCII("email"));
@@ -53,7 +54,7 @@ class Signin extends AbstractAdminAPIController
         }
 
         try {
-            $password = $emailValidator->getValidated($this->input()->getASCII("password"));
+            $password = $passwordValidator->getValidated($this->input()->getASCII("password"));
         } catch (ValidatorException $e) {
             throw AdminAPIException::Param("password", "Invalid entered password", $e->getCode());
         }
