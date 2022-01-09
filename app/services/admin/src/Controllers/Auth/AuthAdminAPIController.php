@@ -44,7 +44,7 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
         }
 
         // Cross-check session IDs; (Administrator may have logged in from elsewhere)
-        if ($this->admin->private($this->session->type . "_auth_session") !== $this->session->private("token")) {
+        if ($this->admin->private($this->session->type . "AuthSession") !== $this->session->private("token")) {
             throw new AdminAPIException('SESSION_REDUNDANT');
         }
 
