@@ -32,6 +32,7 @@ USER comely-io
 WORKDIR /home/comely-io/
 COPY ./ssl ssl/
 COPY ./config admin/config/
+COPY ./docker admin/docker/
 COPY ./app/common admin/common/
 COPY ./app/services/admin/composer.json admin/composer.json
 COPY ./app/services/admin/src admin/src/
