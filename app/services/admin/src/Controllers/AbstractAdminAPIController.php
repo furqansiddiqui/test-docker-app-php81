@@ -97,6 +97,7 @@ abstract class AbstractAdminAPIController extends AbstractAppController
 
             if ($this->aK->isDebug()) {
                 $exception["caught"] = get_class($e);
+                $exception["code"] = $e->getCode();
                 $exception["file"] = $e->getFile();
                 $exception["line"] = $e->getLine();
                 $exception["trace"] = $this->getExceptionTrace($e);
