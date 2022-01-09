@@ -58,7 +58,10 @@ namespace App\Common\Kernel\Docker {
 
             if (isset($cache)) {
                 try {
-                    $cache->set(self::CACHE_KEY, $dockerConfig);
+                    $cloneConfig = clone $dockerConfig;
+                    $cloneConfig->cachedOn = time();
+                    $cache->set(self::CACHE_KEY, $cloneConfig);
+                    unset($cloneConfig);
                 } catch (CacheException $e) {
                     $aK->errors->triggerIfDebug($e, E_USER_WARNING);
                 }
