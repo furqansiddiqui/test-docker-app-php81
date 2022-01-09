@@ -36,10 +36,9 @@ class Signin extends AbstractAdminAPIController
      * @return void
      * @throws AdminAPIException
      * @throws AppException
-     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws ValidatorException
      * @throws \Comely\Database\Exception\DbConnectionException
      * @throws \Comely\Database\Exception\DbQueryException
-     * @throws \Comely\Database\Exception\ORM_ModelQueryException
      * @throws \Comely\Database\Exception\PDO_Exception
      * @throws \Comely\Security\Exception\PRNG_Exception
      */
@@ -49,14 +48,14 @@ class Signin extends AbstractAdminAPIController
 
         try {
             $email = $emailValidator->getValidated($this->input()->getASCII("email"));
-        } catch (ValidatorException) {
-            throw AdminAPIException::Param("email", "Invalid e-mail address");
+        } catch (ValidatorException $e) {
+            throw AdminAPIException::Param("email", "Invalid e-mail address", $e->getCode());
         }
 
         try {
             $password = $emailValidator->getValidated($this->input()->getASCII("password"));
-        } catch (ValidatorException) {
-            throw AdminAPIException::Param("password", "Invalid entered password");
+        } catch (ValidatorException $e) {
+            throw AdminAPIException::Param("password", "Invalid entered password", $e->getCode());
         }
 
         try {
