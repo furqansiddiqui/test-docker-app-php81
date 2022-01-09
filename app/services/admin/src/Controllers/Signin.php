@@ -130,8 +130,8 @@ class Signin extends AbstractAdminAPIController
             $session->set("checksum", $session->checksum()->raw());
             $session->query()->where("id", $session->id)->update();
 
-            $admin->set($session->type . "_auth_session", $secureEntropy);
-            $admin->set($session->type . "_auth_secret", $hmacSecret);
+            $admin->set($session->type . "AuthSession", $secureEntropy);
+            $admin->set($session->type . "AuthSecret", $hmacSecret);
             $admin->timeStamp = time();
             $admin->query()->update();
 
