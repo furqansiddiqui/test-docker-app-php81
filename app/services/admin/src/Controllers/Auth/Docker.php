@@ -5,18 +5,19 @@ namespace App\Services\Admin\Controllers\Auth;
 
 use App\Common\Kernel\Docker\DockerConfig;
 use App\Common\Validator;
-use App\Services\Admin\Controllers\AbstractAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
 
 /**
  * Class Docker
  * @package App\Services\Admin\Controllers\Auth
  */
-class Docker extends AbstractAdminAPIController
+class Docker extends AuthAdminAPIController
 {
-    protected function adminAPICallback(): void
+    /**
+     * @return void
+     */
+    protected function authCallback(): void
     {
-        // Todo: change to authenticated API type
     }
 
     /**

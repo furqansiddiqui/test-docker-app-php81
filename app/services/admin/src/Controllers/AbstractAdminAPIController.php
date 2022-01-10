@@ -212,9 +212,11 @@ abstract class AbstractAdminAPIController extends AbstractAppController
 
         // Update the session lastUsedOn & checksum
         if (static::class !== 'App\Services\Admin\Controllers\Auth\Session') {
-            $session->lastUsedOn = time();
-            $session->set("checksum", $session->checksum()->raw());
-            $session->query()->update();
+            if ($session->lastUsedOn !== time()) {
+                $session->lastUsedOn = time();
+                $session->set("checksum", $session->checksum()->raw());
+                $session->query()->update();
+            }
         }
 
         // Set the instance
