@@ -164,10 +164,22 @@ namespace App\Common\Kernel\Docker {
                                     $service->externalPort = intval($sCPout);
                                 } elseif (preg_match('/^[0-9]+(\.[0-9]+){3}:[0-9]{2,5}$/', $sCPout)) {
                                     $service->externalPort = $sCPout;
-                                } elseif (preg_match('/^\${\w+}$/i', $sCPout)) {
-                                    $sCPout = OOP::camelCase(substr($sCPout, 2, -1));
-                                    if (isset($aK->config->env->$sCPout)) {
-                                        $service->externalPort = $aK->config->env->$sCPout;
+                                } elseif (preg_match('/^\${\w+(:-[0-9]+)?}$/i', $sCPout)) {
+                                    $sCPoutDef = null;
+                                    if (preg_match('/:-[0-9]+}$/', $sCPout)) {
+                                        $sCPout = explode(":", substr($sCPout, 2, -1));
+                                        $sCPoutVar = OOP::camelCase($sCPout[0]);
+                                        $sCPoutDef = intval(substr($sCPout[1], 1));
+                                    } else {
+                                        $sCPoutVar = OOP::camelCase(substr($sCPout, 2, -1));
+                                    }
+
+                                    if (isset($aK->config->env->$sCPoutVar)) {
+                                        $service->externalPort = $aK->config->env->$sCPoutVar;
+                                    }
+
+                                    if (!$service->externalPort && $sCPoutDef) {
+                                        $service->externalPort = $sCPoutDef;
                                     }
                                 }
                             }
@@ -196,7 +208,7 @@ namespace App\Common\Kernel\Docker {
             }
 
             // Sort services
-            if($this->services) {
+            if ($this->services) {
                 usort($this->services, function (DockerConfigService $service1, DockerConfigService $service2) {
                     $ipSort1 = $service1->ipAddress ? intval(explode(".", $service1->ipAddress)[3]) : 0;
                     $ipSort2 = $service2->ipAddress ? intval(explode(".", $service2->ipAddress)[3]) : 0;

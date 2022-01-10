@@ -41,6 +41,10 @@ class Docker extends AbstractAdminAPIController
     {
         $dockerConfig = DockerConfig::getInstance($this->aK, useCache: true);
 
+        // Ping services?
+        $pingCheck = strtolower($this->input()->getASCII("ping"));
+        $pingCheck = $pingCheck && Validator::getBool($pingCheck);
+
         // Specific service info requested?
         $serviceId = strtolower($this->input()->getASCII("service"));
         if ($serviceId) {
@@ -58,7 +62,7 @@ class Docker extends AbstractAdminAPIController
             }
 
             // PING for status
-            if ($service->ipAddress) {
+            if ($pingCheck && $service->ipAddress) {
                 $service->status = $this->pingService($service->ipAddress, 2);
             }
 
@@ -75,10 +79,12 @@ class Docker extends AbstractAdminAPIController
         }
 
         // PING all services
-        /** @var DockerConfig\DockerConfigService $service */
-        foreach ($dockerConfig->services as $service) {
-            if ($service->ipAddress) {
-                $service->status = $this->pingService($service->ipAddress, 2);
+        if ($pingCheck) {
+            /** @var DockerConfig\DockerConfigService $service */
+            foreach ($dockerConfig->services as $service) {
+                if ($service->ipAddress) {
+                    $service->status = $this->pingService($service->ipAddress, 2);
+                }
             }
         }
 
