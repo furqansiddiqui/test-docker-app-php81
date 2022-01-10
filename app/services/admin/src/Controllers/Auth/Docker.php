@@ -21,12 +21,12 @@ class Docker extends AbstractAdminAPIController
 
     /**
      * @param string $ipAddress
-     * @param int $n
+     * @param int $counts
      * @return bool
      */
-    private function pingService(string $ipAddress, int $n = 3): bool
+    private function pingService(string $ipAddress, int $counts = 5): bool
     {
-        exec(sprintf("ping -n %d %s", $n, $ipAddress), result_code: $resultCode);
+        exec(sprintf("ping -c %d %s", $counts, $ipAddress), result_code: $resultCode);
         return $resultCode === 0;
     }
 
