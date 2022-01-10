@@ -5,6 +5,7 @@ namespace App\Common\Kernel\Docker {
 
     use App\Common\AppKernel;
     use App\Common\Exception\DockerConfigException;
+    use App\Common\Kernel\Docker\DockerConfig\DockerConfigFile;
     use App\Common\Kernel\Docker\DockerConfig\DockerConfigNetwork;
     use App\Common\Kernel\Docker\DockerConfig\DockerConfigService;
     use App\Common\Validator;
@@ -71,6 +72,8 @@ namespace App\Common\Kernel\Docker {
             return $dockerConfig;
         }
 
+        /** @var array */
+        public array $files = [];
         /** @var DockerConfigNetwork|null */
         public ?DockerConfigNetwork $network = null;
         /** @var array */
@@ -92,7 +95,11 @@ namespace App\Common\Kernel\Docker {
             $files = $aK->dirs->root->dir("docker")->glob("*.yml");
             foreach ($files as $file) {
                 $fileConfig = Yaml::Parse($file)->generate();
-                $config = array_merge_recursive($fileConfig, $config);
+                if (isset($fileConfig["version"]) && is_string($fileConfig["version"])) {
+                    $this->files[] = new DockerConfigFile($file, $fileConfig["version"]);
+
+                    $config = array_merge_recursive($fileConfig, $config);
+                }
             }
 
             // Network
@@ -130,6 +137,14 @@ namespace App\Common\Kernel\Docker {
                     $this->volumes[] = $volume;
                 }
             }
+
+            // Sort services
+            usort($config["services"], function (DockerConfigService $service1, DockerConfigService $service2) {
+                $ipSort1 = $service1->ipAddress ? intval(explode(".", $service1->ipAddress)[3]) : 0;
+                $ipSort2 = $service2->ipAddress ? intval(explode(".", $service2->ipAddress)[3]) : 0;
+
+                return $ipSort1 <=> $ipSort2;
+            });
 
             // Services
             if (isset($config["services"]) && is_array($config["services"])) {
@@ -169,12 +184,17 @@ namespace App\Common\Kernel\Docker {
 
                     // Environments
                     if (isset($sC["environment"]) && is_array($sC["environment"])) {
-                        if (isset($sC["environment"]["COMELY_APP_DEBUG"])) {
-                            $service->appDebug = Validator::getBool($sC["environment"]["COMELY_APP_DEBUG"]);
-                        }
+                        if (isset($sC["environment"]["COMELY_APP_DEBUG"]) || isset($sC["environment"]["COMELY_APP_CACHED_CONFIG"])) {
+                            $service->appDebug = false;
+                            $service->appCachedConfig = false;
 
-                        if (isset($sC["environment"]["COMELY_APP_CACHED_CONFIG"])) {
-                            $service->appCachedConfig = Validator::getBool($sC["environment"]["COMELY_APP_CACHED_CONFIG"]);
+                            if (isset($sC["environment"]["COMELY_APP_DEBUG"])) {
+                                $service->appDebug = Validator::getBool($sC["environment"]["COMELY_APP_DEBUG"]);
+                            }
+
+                            if (isset($sC["environment"]["COMELY_APP_CACHED_CONFIG"])) {
+                                $service->appCachedConfig = Validator::getBool($sC["environment"]["COMELY_APP_CACHED_CONFIG"]);
+                            }
                         }
                     }
 
@@ -188,6 +208,28 @@ namespace App\Common\Kernel\Docker {
 }
 
 namespace App\Common\Kernel\Docker\DockerConfig {
+    /**
+     * Class DockerConfigFile
+     * @package App\Common\Kernel\Docker\DockerConfig
+     */
+    class DockerConfigFile
+    {
+        /** @var string */
+        public string $basename;
+        /** @var string */
+        public string $version;
+
+        /**
+         * @param string $filePath
+         * @param string $version
+         */
+        public function __construct(string $filePath, string $version)
+        {
+            $this->basename = basename($filePath);
+            $this->version = $version;
+        }
+    }
+
     /**
      * Class DockerConfigNetwork
      * @package App\Common\Kernel\Docker\DockerConfig
