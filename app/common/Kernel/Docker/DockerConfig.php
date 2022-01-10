@@ -138,14 +138,6 @@ namespace App\Common\Kernel\Docker {
                 }
             }
 
-            // Sort services
-            usort($config["services"], function (DockerConfigService $service1, DockerConfigService $service2) {
-                $ipSort1 = $service1->ipAddress ? intval(explode(".", $service1->ipAddress)[3]) : 0;
-                $ipSort2 = $service2->ipAddress ? intval(explode(".", $service2->ipAddress)[3]) : 0;
-
-                return $ipSort1 <=> $ipSort2;
-            });
-
             // Services
             if (isset($config["services"]) && is_array($config["services"])) {
                 foreach ($config["services"] as $sId => $sC) {
@@ -203,6 +195,15 @@ namespace App\Common\Kernel\Docker {
                 }
             }
 
+            // Sort services
+            if($this->services) {
+                usort($this->services, function (DockerConfigService $service1, DockerConfigService $service2) {
+                    $ipSort1 = $service1->ipAddress ? intval(explode(".", $service1->ipAddress)[3]) : 0;
+                    $ipSort2 = $service2->ipAddress ? intval(explode(".", $service2->ipAddress)[3]) : 0;
+
+                    return $ipSort1 <=> $ipSort2;
+                });
+            }
         }
     }
 }
