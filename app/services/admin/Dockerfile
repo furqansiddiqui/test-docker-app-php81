@@ -39,6 +39,7 @@ COPY ./app/services/admin/src admin/src/
 COPY ./app/services/admin/www admin/www/
 
 USER root
+RUN apt-get install iputils-ping
 RUN chown -R comely-io:comely-io /home/comely-io/
 RUN chmod +x /home/comely-io
 
