@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace App\Common;
 
-use App\Common\Exception\AppException;
-use App\Services\Admin\Exception\AdminAPIException;
 use Comely\Security\Passwords;
 use Comely\Utils\Validator\ASCII_Validator;
 use Comely\Utils\Validator\StringValidator;
