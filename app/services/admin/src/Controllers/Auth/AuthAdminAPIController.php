@@ -55,11 +55,6 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
                     $this->response->set("lastActivity", $this->session->lastUsedOn);
                     throw new AdminAPIException('TOTP_REFRESH_REQUIRED');
                 }
-
-                if ($this->session->last2faOn && (time() - $this->session->last2faOn) >= 600) {
-                    $this->response->set("last2faCheck", $this->session->last2faOn);
-                    throw new AdminAPIException('TOTP_REFRESH_REQUIRED');
-                }
             }
         }
 
@@ -112,6 +107,69 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
         $requestTsAge = time() - $requestTs;
         if ($requestTsAge >= 2) {
             throw new AdminAPIException(sprintf('The request query has expired, -%d seconds', $requestTsAge));
+        }
+    }
+
+    /**
+     * @param int $period
+     * @return void
+     * @throws AdminAPIException
+     */
+    protected function totpLastCheck(int $period = 60): void
+    {
+        try {
+            if (!$this->session->last2faOn) {
+                throw new \RuntimeException();
+            }
+
+            if ((time() - $this->session->last2faOn) >= $period) {
+                throw new \RuntimeException();
+            }
+        } catch (\RuntimeException) {
+            throw new AdminAPIException('TOTP_REQUIRED');
+        }
+    }
+
+    /**
+     * @param mixed $code
+     * @param string|null $param
+     * @param bool $updateQuery
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\ORM_ModelQueryException
+     */
+    protected function totpVerify(mixed $code, ?string $param = "totp", bool $updateQuery = true): void
+    {
+        if (is_int($code)) {
+            $code = strval($code);
+        }
+
+        try {
+            if (!is_string($code) || !preg_match('/^[0-9]{6}$/', $code)) {
+                throw new AdminAPIException('Invalid TOTP code');
+            }
+
+            if ($code === $this->session->last2faCode) {
+                throw new AdminAPIException('This TOTP code has already been consumed');
+            }
+
+            if (!$this->admin->credentials()->verifyTotp($code)) {
+                throw new AdminAPIException('Incorrect TOTP code');
+            }
+        } catch (AdminAPIException $e) {
+            if ($param) {
+                $e->setParam($param);
+            }
+
+            throw $e;
+        }
+
+        $this->session->last2faOn = time();
+        $this->session->last2faCode = $code;
+
+        if ($updateQuery) {
+            $this->session->query()->update();
         }
     }
 
