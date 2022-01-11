@@ -25,6 +25,7 @@ class Account extends AuthAdminAPIController
     {
         $this->status(true);
         $this->response->set("admin", [
+            "email" => $this->admin->email,
             "phone" => $this->admin->phone,
         ]);
 
