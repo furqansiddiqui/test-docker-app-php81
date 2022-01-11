@@ -25,15 +25,10 @@ class Account extends AuthAdminAPIController
     {
         $this->status(true);
         $this->response->set("admin", [
+            "email" => $this->admin->email,
             "phone" => $this->admin->phone,
         ]);
 
-        $suggestedAuthSeed = GoogleAuthenticator::generateSecret();
-        $this->response->set("suggestedAuthSeed", $suggestedAuthSeed);
-        $this->response->set("suggestedAuthSeedQR", GoogleAuthenticator::getImageUrl(
-            $this->admin->email,
-            $this->aK->config->public->title . " " . "Admin",
-            $suggestedAuthSeed
-        ));
+        $this->response->set("suggestedAuthSeed", GoogleAuthenticator::generateSecret());
     }
 }
