@@ -74,7 +74,7 @@ class Logs extends AbstractAppTable
             $flagIndex = -1;
             foreach ($flags as $flag) {
                 $flagIndex++;
-                if (!preg_match('/^[\w.]{1,16}(:[0-9]{1,10})?$/', $flag)) {
+                if (!preg_match('/^[\w.\-]{1,16}(:[0-9]{1,10})?$/', $flag)) {
                     throw new AppException(sprintf('Invalid admin log flag at index %d', $flagIndex));
                 }
 
