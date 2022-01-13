@@ -139,8 +139,14 @@ class Account extends AuthAdminAPIController
             $this->admin->set("credentials", $this->admin->cipher()->encrypt($credentials)->raw());
             $this->admin->timeStamp = time();
             $this->admin->set("checksum", $this->admin->checksum()->raw());
+            $this->admin->set($this->session->type . "AuthSession", null);
+            $this->admin->set($this->session->type . "AuthSecret", null);
             $this->admin->query()->update();
             $this->adminLogEntry("Password changed", flags: ["account", "pw-change"]);
+
+            $this->session->archived = 1;
+            $this->session->query()->update();
+
             $db->commit();
         } catch (\Exception $e) {
             $db->rollBack();
