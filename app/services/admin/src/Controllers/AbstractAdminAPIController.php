@@ -217,10 +217,22 @@ abstract class AbstractAdminAPIController extends AbstractAppController
         }
 
         // Update session on query end
-        register_shutdown_function([$session->query(), "update"]);
+        register_shutdown_function([$this, "updateSession"]);
 
         // Set the instance
         $this->session = $session;
+    }
+
+    /**
+     * @return void
+     * @throws \Comely\Database\Exception\ORM_Exception
+     * @throws \Comely\Database\Exception\ORM_ModelQueryException
+     */
+    public function updateSession(): void
+    {
+        if ($this->session->changes()) {
+            $this->session->query()->update();
+        }
     }
 
     /**
