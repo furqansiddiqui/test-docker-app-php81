@@ -97,6 +97,15 @@ class Validator
     }
 
     /**
+     * @param mixed $phone
+     * @return bool
+     */
+    public static function isValidPhone(mixed $phone): bool
+    {
+        return is_string($phone) && preg_match('/^\+[0-9]{1,6}\.[0-9]{4,16}$/', $phone);
+    }
+
+    /**
      * @param mixed $port
      * @param int $min
      * @return bool
