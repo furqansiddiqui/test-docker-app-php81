@@ -9,7 +9,7 @@
     "comely-io/buffer-php": "0.1.1",
     "comely-io/cache": "2.0.4",
     "comely-io/cli": "2.0.2",
-    "comely-io/db-orm": "2.0.4",
+    "comely-io/db-orm": "2.0.5",
     "comely-io/filesystem": "2.0.1",
     "comely-io/http": "2.1.0",
     "comely-io/security": "0.1.1",
