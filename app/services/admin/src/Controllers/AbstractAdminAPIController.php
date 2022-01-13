@@ -231,7 +231,7 @@ abstract class AbstractAdminAPIController extends AbstractAppController
     public function updateSession(): void
     {
         if ($this->session->changes()) {
-            $this->session->query()->update();
+            $this->session->query()->update(expectPositiveRowCount: false);
         }
     }
 
