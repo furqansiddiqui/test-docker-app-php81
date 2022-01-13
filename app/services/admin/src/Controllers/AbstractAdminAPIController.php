@@ -224,22 +224,14 @@ abstract class AbstractAdminAPIController extends AbstractAppController
     }
 
     /**
-     * @param bool $quite
      * @return void
      * @throws \Comely\Database\Exception\ORM_Exception
      * @throws \Comely\Database\Exception\ORM_ModelQueryException
-     * @throws \Throwable
      */
-    public function updateSession(bool $quite = true): void
+    public function updateSession(): void
     {
         if ($this->session->changes()) {
-            try {
-                $this->session->query()->update();
-            } catch (\Throwable $t) {
-                if (!$quite) {
-                    throw $t;
-                }
-            }
+            $this->session->query()->update(expectPositiveRowCount: false);
         }
     }
 
