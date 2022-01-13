@@ -203,7 +203,9 @@ class Account extends AuthAdminAPIController
         }
 
         // Verify Existing TOTP
-        $this->totpVerify($this->input()->getASCII("currentTotp"), "currentTotp");
+        if ($credentials->getGoogleAuthSeed()) {
+            $this->totpVerify($this->input()->getASCII("currentTotp"), "currentTotp");
+        }
 
         // Save Changes
         $db = $this->aK->db->primary();
