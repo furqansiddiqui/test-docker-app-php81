@@ -11,6 +11,8 @@ use App\Common\Database\Primary\Administrators;
 use App\Common\Exception\AppException;
 use App\Services\Admin\Controllers\AbstractAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
+use FurqanSiddiqui\SemaphoreEmulator\Exception\ResourceLockException;
+use FurqanSiddiqui\SemaphoreEmulator\ResourceLock;
 
 /**
  * Class AuthAdminAPIController
@@ -23,6 +25,8 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
 
     /** @var Administrator */
     protected readonly Administrator $admin;
+    /** @var ResourceLock|null */
+    private ?ResourceLock $sL = null;
 
     /**
      * @return void
@@ -111,11 +115,60 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
     }
 
     /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     */
+    protected function totpResourceLock(): void
+    {
+        try {
+            $this->obtainSemaphoreLock(sprintf("admin_%d_totp_controller", $this->admin->id), 0.5, 10);
+        } catch (ResourceLockException) {
+            throw new AdminAPIException('TOTP locked resource is busy; Please try again');
+        }
+    }
+
+    /**
+     * @param string $resourceId
+     * @param float|null $checkEveryNSeconds
+     * @param int|null $maxTimeout
+     * @param bool $autoRelease
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \FurqanSiddiqui\SemaphoreEmulator\Exception\ConcurrentRequestBlocked
+     * @throws \FurqanSiddiqui\SemaphoreEmulator\Exception\ResourceLockException
+     */
+    protected function obtainSemaphoreLock(string $resourceId, ?float $checkEveryNSeconds = null, ?int $maxTimeout = 30, bool $autoRelease = true): void
+    {
+        if ($this->sL) {
+            throw new AdminAPIException('Semaphore resource lock already set; Cannot override');
+        }
+
+        $this->sL = $this->aK->semaphoreEmulator()->obtainLock($resourceId, $checkEveryNSeconds, $maxTimeout);
+        if ($autoRelease) {
+            $this->sL->setAutoRelease();
+        }
+    }
+
+    /**
+     * @return void
+     * @throws \FurqanSiddiqui\SemaphoreEmulator\Exception\ResourceLockException
+     */
+    protected function releaseSemaphoreLock(): void
+    {
+        if ($this->sL) {
+            $this->sL->release();
+            $this->sL = null;
+        }
+    }
+
+    /**
      * @param int $period
      * @return void
      * @throws AdminAPIException
      */
-    protected function totpLastCheck(int $period = 60): void
+    protected function totpLastCheck(int $period = 300): void
     {
         try {
             if (!$this->session->last2faOn) {
@@ -133,13 +186,11 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
     /**
      * @param mixed $code
      * @param string|null $param
-     * @param bool $updateQuery
      * @return void
      * @throws AdminAPIException
      * @throws AppException
-     * @throws \Comely\Database\Exception\ORM_ModelQueryException
      */
-    protected function totpVerify(mixed $code, ?string $param = "totp", bool $updateQuery = true): void
+    protected function totpVerify(mixed $code, ?string $param = "totp"): void
     {
         if (is_int($code)) {
             $code = strval($code);
@@ -167,10 +218,6 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
 
         $this->session->last2faOn = time();
         $this->session->last2faCode = $code;
-
-        if ($updateQuery) {
-            $this->session->query()->update();
-        }
     }
 
     /**
