@@ -28,7 +28,7 @@ class Logs extends AuthAdminAPIController
     public function get(): void
     {
         // Administrator Id
-        $adminId = $this->input()->getInt("admin", unSigned: true) ?? $this->admin->id;
+        $adminId = $this->input()->getInt("admin", unSigned: true) ?? 0;
 
         // Administrator Privileges
         if ($adminId !== $this->admin->id) {
@@ -53,8 +53,43 @@ class Logs extends AuthAdminAPIController
         ];
 
         // Query Builder
-        $whereQuery = '`admin`=?';
-        $whereData = [$adminId];
+        $whereQuery = "1";
+        $whereData = [];
+
+        if ($adminId > 0) {
+            $whereQuery .= ' AND `admin`=?';
+            $whereData[] = $adminId;
+        }
+
+        // Search filters
+        $flags = preg_split('/[\s,]+/', $this->input()->getASCII("flags"));
+        if (is_array($flags) && isset($flags[0])) {
+            $whereQuery .= ' AND (';
+            $fI = -1;
+            foreach ($flags as $flag) {
+                $fI++;
+                $flag = trim($flag);
+                if (!$flag) {
+                    continue;
+                }
+
+                if ($fI !== 0) {
+                    $whereQuery .= ' OR ';
+                }
+
+                $whereQuery .= '`flag` LIKE ?';
+                $whereData[] = sprintf('%%%s%%', $flag);
+            }
+
+            $whereQuery .= ')';
+        }
+
+        // Log message
+        $filter = $this->input()->getASCII("filter");
+        if ($filter) {
+            $whereQuery .= 'AND `log` LIKE ?';
+            $whereData[] = sprintf('%%%s%%', $filter);
+        }
 
         try {
             $logsQuery = $this->aK->db->primary()->query()
