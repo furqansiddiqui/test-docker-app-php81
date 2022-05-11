@@ -79,7 +79,8 @@ class Signin extends AbstractAdminAPIController
 
         // TOTP check?
         $googleAuthSeed = $admin->credentials()->getGoogleAuthSeed();
-        if ($googleAuthSeed) {
+        if ($googleAuthSeed) { // Disabled Google2FA check on login for now
+            // if ($googleAuthSeed) {
             $totpCode = $this->input()->getASCII("totp");
             if (!preg_match('/^[0-9]{6}$/', $totpCode)) {
                 throw AdminAPIException::Param("totp", "Invalid 2FA/TOTP code");
