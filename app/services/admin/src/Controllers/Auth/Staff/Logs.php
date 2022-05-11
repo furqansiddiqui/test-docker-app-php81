@@ -111,6 +111,7 @@ class Logs extends AuthAdminAPIController
         foreach ($logsQuery->rows() as $row) {
             try {
                 $log = new Log($row);
+                $log->flags = $log->flags ? explode(",", $log->flags) : null;
                 $logs[] = $log;
             } catch (\Exception $e) {
                 $this->aK->errors->trigger($e, E_USER_WARNING);
