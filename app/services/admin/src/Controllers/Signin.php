@@ -79,7 +79,7 @@ class Signin extends AbstractAdminAPIController
 
         // TOTP check?
         $googleAuthSeed = $admin->credentials()->getGoogleAuthSeed();
-        if ($googleAuthSeed) { // Disabled Google2FA check on login for now
+        if (!$googleAuthSeed) { // Disabled Google2FA check on login for now
             // if ($googleAuthSeed) {
             $totpCode = $this->input()->getASCII("totp");
             if (!preg_match('/^[0-9]{6}$/', $totpCode)) {
