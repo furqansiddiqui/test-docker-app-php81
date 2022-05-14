@@ -62,26 +62,29 @@ class Logs extends AuthAdminAPIController
         }
 
         // Search filters
-        $flags = preg_split('/[\s,]+/', $this->input()->getASCII("flags"));
-        if (is_array($flags) && isset($flags[0])) {
-            $whereQuery .= ' AND (';
-            $fI = -1;
-            foreach ($flags as $flag) {
-                $fI++;
-                $flag = trim($flag);
-                if (!$flag) {
-                    continue;
+        $flags = $this->input()->getASCII("flags");
+        if ($flags) {
+            $flags = preg_split('/[\s,]+/', $flags);
+            if (is_array($flags) && isset($flags[0])) {
+                $whereQuery .= ' AND (';
+                $fI = -1;
+                foreach ($flags as $flag) {
+                    $fI++;
+                    $flag = trim($flag);
+                    if (!$flag) {
+                        continue;
+                    }
+
+                    if ($fI !== 0) {
+                        $whereQuery .= ' OR ';
+                    }
+
+                    $whereQuery .= '`flag` LIKE ?';
+                    $whereData[] = sprintf('%%%s%%', $flag);
                 }
 
-                if ($fI !== 0) {
-                    $whereQuery .= ' OR ';
-                }
-
-                $whereQuery .= '`flag` LIKE ?';
-                $whereData[] = sprintf('%%%s%%', $flag);
+                $whereQuery .= ')';
             }
-
-            $whereQuery .= ')';
         }
 
         // Log message
