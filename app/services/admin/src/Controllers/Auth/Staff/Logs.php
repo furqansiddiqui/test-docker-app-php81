@@ -90,7 +90,7 @@ class Logs extends AuthAdminAPIController
         // Log message
         $filter = $this->input()->getASCII("filter");
         if ($filter) {
-            $whereQuery .= 'AND `log` LIKE ?';
+            $whereQuery .= ' AND `log` LIKE ?';
             $whereData[] = sprintf('%%%s%%', $filter);
         }
 
