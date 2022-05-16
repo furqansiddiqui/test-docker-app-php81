@@ -79,8 +79,8 @@ class Logs extends AuthAdminAPIController
                         $whereQuery .= ' OR ';
                     }
 
-                    $whereQuery .= '`flag` LIKE ?';
-                    $whereData[] = sprintf('%%%s%%', $flag);
+                    $whereQuery .= 'INSTR(`flags`, ?) > 0';
+                    $whereData[] = $flag;
                 }
 
                 $whereQuery .= ')';
@@ -98,13 +98,14 @@ class Logs extends AuthAdminAPIController
             $logsQuery = $this->aK->db->primary()->query()
                 ->table(\App\Common\Database\Primary\Admin\Logs::TABLE)
                 ->where($whereQuery, $whereData)
-                ->desc("time_stamp", "id")
+                ->desc("id")
                 ->start(($pageNum * $perPage) - $perPage)
                 ->limit($perPage)
                 ->paginate();
 
             $result["totalRows"] = $logsQuery->totalRows();
             $result["page"] = $pageNum;
+            $result["perPage"] = $perPage;
         } catch (\Exception $e) {
             $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
             throw new AdminAPIException('Failed to execute logs fetch query');
