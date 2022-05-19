@@ -78,6 +78,7 @@ class Insert extends AuthAdminAPIController
             $admin->phone = null;
             $admin->set("credentials", "tba");
             $admin->set("privileges", "tba");
+            $admin->timeStamp = time();
             $admin->query()->insert();
             $admin->id = $db->lastInsertId();
 
