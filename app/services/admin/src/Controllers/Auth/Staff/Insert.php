@@ -89,7 +89,7 @@ class Insert extends AuthAdminAPIController
             $admin->set("credentials", $admin->cipher()->encrypt($credentials)->raw());
             $privileges = new Privileges($admin);
             $admin->set("privileges", $admin->cipher()->encrypt($privileges)->raw());
-            $admin->query()->update();
+            $admin->query()->where("id", $admin->id)->update();
 
             // Admin Log Entry
             $this->adminLogEntry(
