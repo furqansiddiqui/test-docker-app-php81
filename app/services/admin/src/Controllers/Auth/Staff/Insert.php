@@ -80,15 +80,16 @@ class Insert extends AuthAdminAPIController
             $admin->set("privileges", "tba");
             $admin->timeStamp = time();
             $admin->query()->insert();
-            $admin->id = $db->lastInsertId();
 
             // Finish administrator account
+            $admin->id = $db->lastInsertId();
             $admin->set("checksum", $admin->checksum()->raw());
             $credentials = new Credentials($admin);
             $credentials->changePassword($tempPassword);
             $admin->set("credentials", $admin->cipher()->encrypt($credentials)->raw());
             $privileges = new Privileges($admin);
             $admin->set("privileges", $admin->cipher()->encrypt($privileges)->raw());
+            $admin->query()->update();
 
             // Admin Log Entry
             $this->adminLogEntry(
