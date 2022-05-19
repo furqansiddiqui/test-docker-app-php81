@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Services\Admin\Controllers\Auth\Staff\Insert;
+namespace App\Services\Admin\Controllers\Auth\Staff;
 
 use App\Common\Admin\Administrator;
 use App\Common\Admin\Credentials;
@@ -15,7 +15,7 @@ use Comely\Utils\Validator\Exception\ValidatorException;
 
 /**
  * Class Insert
- * @package App\Services\Admin\Controllers\Auth\Staff\Insert
+ * @package App\Services\Admin\Controllers\Auth\Staff
  */
 class Insert extends AuthAdminAPIController
 {
