@@ -15,7 +15,7 @@ use Comely\Utils\Validator\Exception\ValidatorException;
 
 /**
  * Class Insert
- * @package App\Services\Admin\Controllers\Auth\Staff\Insert
+ * @package App\Services\Admin\Controllers\Auth\Staff
  */
 class Insert extends AuthAdminAPIController
 {
