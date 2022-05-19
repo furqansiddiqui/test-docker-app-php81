@@ -18,8 +18,6 @@ class Privileges
     /** @var bool */
     public bool $editConfig = false;
     /** @var bool */
-    public bool $viewAdmins = false;
-    /** @var bool */
     public bool $viewAdminsLogs = false;
     /** @var bool */
     public bool $viewUsers = false;
