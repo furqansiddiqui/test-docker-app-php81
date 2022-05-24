@@ -78,7 +78,7 @@ class Signin extends AbstractAdminAPIController
         }
 
         // Status
-        if (!$admin->status) {
+        if ($admin->status !== 1) {
             throw new AdminAPIException('Your account is DISABLED');
         }
 
