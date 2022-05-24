@@ -33,8 +33,8 @@ class Insert extends AuthAdminAPIController
      */
     public function post(): void
     {
-        $emailValidator = Validator::EmailAddress();
-        $passwordValidator = Validator::Password();
+        $emailValidator = Validator::EmailAddress(32);
+        $passwordValidator = Validator::Password(minStrength: 3);
 
         $this->totpResourceLock();
 

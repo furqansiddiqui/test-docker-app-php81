@@ -77,6 +77,11 @@ class Signin extends AbstractAdminAPIController
             throw new AdminAPIException("Incorrect e-mail address or password");
         }
 
+        // Status
+        if ($admin->status !== 1) {
+            throw new AdminAPIException('Your account is DISABLED');
+        }
+
         // TOTP check?
         $googleAuthSeed = $admin->credentials()->getGoogleAuthSeed();
         if (!$googleAuthSeed) { // Disabled Google2FA check on login for now

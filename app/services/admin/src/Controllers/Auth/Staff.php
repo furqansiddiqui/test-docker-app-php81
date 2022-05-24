@@ -29,8 +29,18 @@ class Staff extends AuthAdminAPIController
     public function get(): void
     {
         $result = [];
+        $whereQuery = 'WHERE 1';
+        $whereData = [];
 
-        $admins = Administrators::Find()->query('WHERE 1')->all();
+        // Search for a specific admin?
+        $adminId = $this->input()->getInt("id", true);
+        if ($adminId) {
+            $whereQuery = 'WHERE `id`=?';
+            $whereData = [$adminId];
+        }
+
+        // Retrieve all admins
+        $admins = Administrators::Find()->query($whereQuery, $whereData)->all();
         /** @var Administrator $admin */
         foreach ($admins as $admin) {
             try {

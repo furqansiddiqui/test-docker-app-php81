@@ -28,6 +28,47 @@ class Privileges
 
     /**
      * @param Administrator $admin
+     * @return array
+     * @throws \App\Common\Exception\AppException
+     */
+    public static function Permissions(Administrator $admin): array
+    {
+        $privileges = $admin->privileges();
+        return [
+            "viewConfig" => self::PrivilegeDetail("View configured settings", $privileges->viewConfig, isSensitive: true),
+            "editConfig" => self::PrivilegeDetail("Make changes to configuration setup", $privileges->editConfig, isCritical: true),
+            "viewAdminsLogs" => self::PrivilegeDetail("View other administrators activity log", $privileges->viewAdminsLogs),
+            "viewUsers" => self::PrivilegeDetail("Browse and view users information", $privileges->viewUsers),
+            "manageUsers" => self::PrivilegeDetail("Make changes to a user account", $privileges->manageUsers, isSensitive: true),
+            "viewAPIQueriesPayload" => self::PrivilegeDetail("View API queries and payloads", $privileges->viewAPIQueriesPayload, isCritical: true)
+        ];
+    }
+
+    /**
+     * @param string|null $desc
+     * @param bool $current
+     * @param bool $isCritical
+     * @param bool $isSensitive
+     * @return array
+     */
+    private static function PrivilegeDetail(?string $desc, bool $current, bool $isCritical = false, bool $isSensitive = false): array
+    {
+        $type = 0x00;
+        if ($isSensitive) {
+            $type = 0x01;
+        } elseif ($isCritical) {
+            $type = 0x02;
+        }
+
+        return [
+            "desc" => $desc,
+            "current" => $current,
+            "type" => $type
+        ];
+    }
+
+    /**
+     * @param Administrator $admin
      */
     public function __construct(Administrator $admin)
     {
