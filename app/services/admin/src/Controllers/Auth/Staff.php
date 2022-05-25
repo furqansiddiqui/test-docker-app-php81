@@ -7,6 +7,7 @@ use App\Common\Admin\Administrator;
 use App\Common\AppConstants;
 use App\Common\Database\Primary\Administrators;
 use App\Common\Exception\AppException;
+use App\Services\Admin\Exception\AdminAPIException;
 use Comely\Database\Exception\ORM_Exception;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
 
@@ -22,8 +23,8 @@ class Staff extends AuthAdminAPIController
 
     /**
      * @return void
+     * @throws AdminAPIException
      * @throws ORM_Exception
-     * @throws ORM_ModelNotFoundException
      * @throws \Comely\Database\Exception\SchemaTableException
      */
     public function get(): void
@@ -40,7 +41,12 @@ class Staff extends AuthAdminAPIController
         }
 
         // Retrieve all admins
-        $admins = Administrators::Find()->query($whereQuery, $whereData)->all();
+        try {
+            $admins = Administrators::Find()->query($whereQuery, $whereData)->all();
+        } catch (ORM_ModelNotFoundException) {
+            throw new AdminAPIException('No matching administrator account found');
+        }
+
         /** @var Administrator $admin */
         foreach ($admins as $admin) {
             try {
