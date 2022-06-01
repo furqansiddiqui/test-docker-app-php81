@@ -75,7 +75,7 @@ class Administrators extends AbstractAppTable
     {
         $aK = AppKernel::getInstance();
         try {
-            $emailHash = md5($email);
+            $emailHash = md5(strtolower($email));
             return $aK->memory->query(sprintf('admin_em_%s', $emailHash), self::ORM_CLASS)
                 ->fetch(function () use ($email) {
                     return self::Find()->col("email", $email)->limit(1)->first();

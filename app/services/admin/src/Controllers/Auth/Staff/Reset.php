@@ -28,7 +28,6 @@ class Reset extends AbstractEditStaffController
             throw new AdminAPIException('Checksum fail; Please re-compute staff checksum first');
         }
 
-
         // Status
         $newStatus = Validator::getBool($this->input()->getASCII("status")) ? 1 : 0;
         if ($newStatus !== $this->editStaff->status) {
@@ -106,6 +105,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -160,6 +160,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -203,6 +204,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -241,6 +243,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -286,6 +289,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**

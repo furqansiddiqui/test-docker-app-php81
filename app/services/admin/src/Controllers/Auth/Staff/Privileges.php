@@ -64,6 +64,7 @@ class Privileges extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
