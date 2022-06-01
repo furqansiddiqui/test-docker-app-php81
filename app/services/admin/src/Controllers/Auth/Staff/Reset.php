@@ -106,6 +106,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -160,6 +161,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -203,6 +205,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -241,6 +244,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**
@@ -286,6 +290,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->purgeCachedStaff();
     }
 
     /**

@@ -164,4 +164,15 @@ class Administrator extends AbstractAppModel
             );
         }
     }
+
+    /**
+     * @return void
+     * @throws \Comely\Cache\Exception\CacheException
+     */
+    public function deleteCached(): void
+    {
+        $cache = $this->aK->cache;
+        $cache->delete(sprintf("admin_%d", $this->id));
+        $cache->delete(sprintf("admin_em_%s", md5(strtolower($this->email))));
+    }
 }

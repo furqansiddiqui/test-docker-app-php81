@@ -8,6 +8,7 @@ use App\Common\Database\Primary\Administrators;
 use App\Common\Exception\AppException;
 use App\Services\Admin\Controllers\Auth\AuthAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
+use Comely\Cache\Exception\CacheException;
 
 /**
  * Class AbstractEditStaffController
@@ -52,6 +53,18 @@ abstract class AbstractEditStaffController extends AuthAdminAPIController
         try { // Validate staff checksum
             $this->editStaff->validateChecksum();
         } catch (AppException) {
+        }
+    }
+
+    /**
+     * @return void
+     */
+    protected function purgeCachedStaff(): void
+    {
+        try {
+            $this->editStaff->deleteCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e);
         }
     }
 }
