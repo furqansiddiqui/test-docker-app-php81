@@ -25,13 +25,18 @@ class Privileges extends AbstractEditStaffController
         $privileges = $this->editStaff->privileges();
         $current = \App\Common\Admin\Privileges::Permissions($this->editStaff);
         $changes = 0;
+        $changedPermissions = $this->input()->getSanitized("permissions");
+        if (!is_array($changedPermissions)) {
+            $changedPermissions = [];
+        }
+
         foreach ($current as $key => $permission) {
             if (property_exists($privileges, $key)) {
                 if ($privileges->$key !== $permission["current"]) {
                     $changes++;
                 }
 
-                $privileges->$key = Validator::getBool($this->input()->getASCII($key));
+                $privileges->$key = Validator::getBool($changedPermissions[$key] ?? null);
             }
         }
 
