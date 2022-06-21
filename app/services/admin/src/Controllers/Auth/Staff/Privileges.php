@@ -32,11 +32,12 @@ class Privileges extends AbstractEditStaffController
 
         foreach ($current as $key => $permission) {
             if (property_exists($privileges, $key)) {
-                if ($privileges->$key !== $permission["current"]) {
+                $newValue = Validator::getBool($changedPermissions[$key] ?? null);
+                if ($newValue !== $permission["current"]) {
                     $changes++;
                 }
 
-                $privileges->$key = Validator::getBool($changedPermissions[$key] ?? null);
+                $privileges->$key = $newValue;
             }
         }
 
