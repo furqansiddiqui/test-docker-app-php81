@@ -192,10 +192,8 @@ class Reset extends AbstractEditStaffController
             $this->editStaff->timeStamp = time();
             $this->editStaff->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('Staff "%s" Google 2FA seed removed', $this->editStaff->email),
-                flags: ["staff:" . $this->editStaff->id, "staff-2fa"]
-            );
+            $successLogMsg = sprintf('Staff "%s" Google 2FA seed removed', $this->editStaff->email);
+            $this->adminLogEntry($successLogMsg, flags: ["staff:" . $this->editStaff->id, "staff-2fa"]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -204,6 +202,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->response->set("success", $successLogMsg);
         $this->purgeCachedStaff();
     }
 
@@ -231,10 +230,8 @@ class Reset extends AbstractEditStaffController
             $this->editStaff->timeStamp = time();
             $this->editStaff->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('Staff "%s" checksum recomputed', $this->editStaff->email),
-                flags: ["staff:" . $this->editStaff->id, "staff-checksum"]
-            );
+            $successLogMsg = sprintf('Staff "%s" checksum recomputed', $this->editStaff->email);
+            $this->adminLogEntry($successLogMsg, flags: ["staff:" . $this->editStaff->id, "staff-checksum"]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -243,6 +240,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->response->set("success", $successLogMsg);
         $this->purgeCachedStaff();
     }
 
@@ -277,10 +275,8 @@ class Reset extends AbstractEditStaffController
             $this->editStaff->timeStamp = time();
             $this->editStaff->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('Staff "%s" privileges object rebuilt', $this->editStaff->email),
-                flags: ["staff:" . $this->editStaff->id, "staff-privileges"]
-            );
+            $successLogMsg = sprintf('Staff "%s" privileges object rebuilt', $this->editStaff->email);
+            $this->adminLogEntry($successLogMsg, flags: ["staff:" . $this->editStaff->id, "staff-privileges"]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -289,6 +285,7 @@ class Reset extends AbstractEditStaffController
         }
 
         $this->status(true);
+        $this->response->set("success", $successLogMsg);
         $this->purgeCachedStaff();
     }
 
