@@ -87,16 +87,16 @@ class Signin extends AbstractAdminAPIController
         /**
          * Temporary disable 2FA for logins
          * if ($googleAuthSeed) {
-            $totpCode = $this->input()->getASCII("totp");
-            if (!preg_match('/^[0-9]{6}$/', $totpCode)) {
-                throw AdminAPIException::Param("totp", "Invalid 2FA/TOTP code");
-            }
-
-            $googleAuth = new GoogleAuthenticator($googleAuthSeed);
-            if (!$googleAuth->verify($totpCode)) {
-                throw AdminAPIException::Param("totp", "Incorrect 2FA/TOTP code");
-            }
-        }*/
+         * $totpCode = $this->input()->getASCII("totp");
+         * if (!preg_match('/^[0-9]{6}$/', $totpCode)) {
+         * throw AdminAPIException::Param("totp", "Invalid 2FA/TOTP code");
+         * }
+         *
+         * $googleAuth = new GoogleAuthenticator($googleAuthSeed);
+         * if (!$googleAuth->verify($totpCode)) {
+         * throw AdminAPIException::Param("totp", "Incorrect 2FA/TOTP code");
+         * }
+         * }*/
 
         // Create a new session;
         $db = $this->aK->db->primary();
@@ -143,6 +143,17 @@ class Signin extends AbstractAdminAPIController
             $admin->query()->update();
 
             Logs::Insert($admin, $this->ipAddress, "Logged In", flags: ["signin", "auth"]);
+
+            // Mark all other sessions archived from this admin
+            $db->exec(
+                sprintf('UPDATE' . ' `%s` SET `archived`=1 WHERE `id`!=? AND `admin_id`=? AND `type`=?', Sessions::TABLE),
+                [
+                    $session->id,
+                    $session->adminId,
+                    $session->type
+                ]
+            );
+
             $db->commit();
         } catch (\Exception $e) {
             $db->rollBack();
