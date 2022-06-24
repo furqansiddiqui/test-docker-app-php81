@@ -11,6 +11,7 @@ use Comely\Buffer\Buffer;
 /**
  * Class Session
  * @package App\Common\Admin
+ * @property bool $checksumHealth
  */
 class Session extends AbstractAppModel
 {
