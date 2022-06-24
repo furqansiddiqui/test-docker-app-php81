@@ -39,7 +39,9 @@ class Sessions extends AuthAdminAPIController
         }
 
         // Status
-        $archivedStatus = $this->input()->getInt("archived", unSigned: true);
+        if($this->input()->has("archived")) {
+            $archivedStatus = $this->input()->getInt("archived", unSigned: true);
+        }
 
         // Filtering
         $searchKey = strtolower($this->input()->getASCII("key"));
@@ -90,7 +92,7 @@ class Sessions extends AuthAdminAPIController
             $whereData[] = $adminId;
         }
 
-        if (in_array($archivedStatus, [1, 0])) {
+        if (isset($archivedStatus) && in_array($archivedStatus, [1, 0])) {
             $whereQuery .= ' AND `archived`=?';
             $whereData[] = $archivedStatus;
         }
