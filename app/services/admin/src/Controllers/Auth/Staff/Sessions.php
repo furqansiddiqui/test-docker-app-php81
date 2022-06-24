@@ -102,8 +102,8 @@ class Sessions extends AuthAdminAPIController
                 $whereQuery .= ' AND `ip_address` LIKE ?';
                 $whereData[] = sprintf("%%%s%%", $searchValue);
             } elseif ($searchKey === "token") {
-                $whereQuery .= ' AND `token` LIKE ?';
-                $whereData[] = sprintf("%%%s%%", hex2bin($searchValue));
+                $whereQuery .= ' AND HEX(`token`) LIKE ?';
+                $whereData[] = sprintf("%%%s%%", $searchValue);
             }
         }
 
