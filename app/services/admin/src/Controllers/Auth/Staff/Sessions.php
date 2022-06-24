@@ -86,7 +86,7 @@ class Sessions extends AuthAdminAPIController
         $whereData = [];
 
         if ($adminId > 0) {
-            $whereQuery .= ' AND `admin`=?';
+            $whereQuery .= ' AND `admin_id`=?';
             $whereData[] = $adminId;
         }
 
@@ -124,9 +124,14 @@ class Sessions extends AuthAdminAPIController
 
         $sessions = [];
         foreach ($sessionsQuery->rows() as $row) {
+            unset($session, $sessionToken);
+
             try {
                 $session = new Session($row);
                 $session->checksumHealth = $session->checksum()->raw() === $session->private("checksum");
+                $sessionToken = bin2hex($session->private("token"));
+                $session->partialToken = sprintf("%s...%s", substr($sessionToken, 0, 4), substr($sessionToken, -4));
+                unset($session->last2faCode);
                 $sessions[] = $session;
             } catch (\Exception $e) {
                 $this->aK->errors->trigger($e, E_USER_WARNING);
