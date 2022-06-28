@@ -34,7 +34,7 @@ class Users extends AbstractAppTable
         $cols->string("username")->length(16)->unique();
         $cols->string("email")->length(64)->nullable()->unique();
         $cols->int("email_verified")->bytes(1)->default(0);
-        $cols->string("phone")->length(32)->nullable();
+        $cols->string("phone")->length(32)->nullable()->unique();
         $cols->int("phone_verified")->bytes(1)->default(0);
         $cols->string("first_name")->length(32)
             ->charset("utf8mb4")->collation("utf8mb4_general_ci");
