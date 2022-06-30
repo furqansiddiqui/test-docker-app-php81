@@ -32,6 +32,10 @@ abstract class abstract_db_builder_script extends AbstractCLIScript
             'App\Common\Database\Primary\Admin\Sessions',
             'App\Common\Database\Primary\DataStore',
             'App\Common\Database\Primary\ProcessTracker',
+            'App\Common\Database\Primary\Countries',
+            'App\Common\Database\Primary\Users\Groups',
+            'App\Common\Database\Primary\Users',
+            'App\Common\Database\Primary\Users\Profiles',
         ]);
 
         $this->print("");
