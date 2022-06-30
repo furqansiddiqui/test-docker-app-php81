@@ -59,7 +59,7 @@ class Groups extends AuthAdminAPIController
             $group = new Group();
             $group->id = 0;
             $group->name = $name;
-            $group->usersCount = 0;
+            $group->userCount = 0;
             $group->updatedOn = time();
             $group->query()->insert();
 
@@ -117,7 +117,7 @@ class Groups extends AuthAdminAPIController
             $oldName = $group->name;
 
             $group->name = $name;
-            $group->usersCount = $group->getLiveUsersCount();
+            $group->userCount = $group->getLiveUsersCount();
             $group->updatedOn = time();
             $group->query()->update();
 
