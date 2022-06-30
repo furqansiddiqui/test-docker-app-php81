@@ -23,7 +23,7 @@ class Group extends AbstractAppModel
     /** @var string */
     public string $name;
     /** @var int */
-    public int $usersCount = 0;
+    public int $userCount = 0;
     /** @var int */
     public int $updatedOn;
 
@@ -54,8 +54,8 @@ class Group extends AbstractAppModel
     public function updateUsersCount(): bool
     {
         $liveUsersCount = $this->getLiveUsersCount();
-        if ($liveUsersCount > 0 && $liveUsersCount !== $this->usersCount) {
-            $this->usersCount = $liveUsersCount;
+        if ($liveUsersCount > 0 && $liveUsersCount !== $this->userCount) {
+            $this->userCount = $liveUsersCount;
             $this->updatedOn = time();
             $this->query()->update();
             return true;
