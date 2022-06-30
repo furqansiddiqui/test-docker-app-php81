@@ -133,6 +133,12 @@ class Groups extends AuthAdminAPIController
             throw $e;
         }
 
+        try {
+            $group->deleteCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
+        }
+
         $this->status(true);
         $this->response->set("group", $group);
     }
@@ -142,6 +148,9 @@ class Groups extends AuthAdminAPIController
      * @throws AdminAPIException
      * @throws AppException
      * @throws DatabaseException
+     * @throws \Comely\Database\Exception\DbConnectionException
+     * @throws \Comely\Database\Exception\ORM_ModelQueryException
+     * @throws \Comely\Database\Exception\PDO_Exception
      */
     public function delete(): void
     {
@@ -170,6 +179,12 @@ class Groups extends AuthAdminAPIController
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
+        }
+
+        try {
+            $group->deleteCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
         }
 
         $this->status(true);
