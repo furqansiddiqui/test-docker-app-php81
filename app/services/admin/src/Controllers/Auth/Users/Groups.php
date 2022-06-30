@@ -220,7 +220,7 @@ class Groups extends AuthAdminAPIController
     public function get(): void
     {
         try {
-            $groups = \App\Common\Database\Primary\Users\Groups::Find()->all();
+            $groups = \App\Common\Database\Primary\Users\Groups::Find()->query('WHERE 1')->all();
         } catch (ORM_ModelNotFoundException) {
             $groups = [];
         }
