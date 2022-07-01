@@ -204,7 +204,7 @@ class Groups extends AuthAdminAPIController
 
             return Users\Groups::get($groupId, useCache: false);
         } catch (AdminAPIException $e) {
-            $e->setParam("id");
+            $e->setParam("group");
             throw $e;
         } catch (AppException $e) {
             throw  AdminAPIException::Param("group", $e->getMessage(), $e->getCode());
