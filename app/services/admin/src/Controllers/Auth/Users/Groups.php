@@ -197,7 +197,7 @@ class Groups extends AuthAdminAPIController
     private function fetchGroupObject(): Group
     {
         try {
-            $groupId = $this->input()->getInt("id", unSigned: true);
+            $groupId = $this->input()->getInt("group", unSigned: true);
             if (!$groupId) {
                 throw new AdminAPIException('Invalid group Id');
             }
@@ -207,7 +207,7 @@ class Groups extends AuthAdminAPIController
             $e->setParam("id");
             throw $e;
         } catch (AppException $e) {
-            throw  AdminAPIException::Param("id", $e->getMessage(), $e->getCode());
+            throw  AdminAPIException::Param("group", $e->getMessage(), $e->getCode());
         }
     }
 
