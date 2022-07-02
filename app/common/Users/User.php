@@ -6,6 +6,7 @@ namespace App\Common\Users;
 use App\Common\Database\AbstractAppModel;
 use App\Common\Database\Primary\Users;
 use App\Common\Exception\AppException;
+use App\Common\Security;
 use Comely\Buffer\Buffer;
 use Comely\Security\Cipher;
 use Comely\Security\Exception\CipherException;
@@ -52,6 +53,48 @@ class User extends AbstractAppModel
     private ?Cipher $_cipher = null;
     /** @var bool|null */
     private ?bool $_checksumValidated = null;
+    /** @var array */
+    private array $_tags = [];
+
+    /**
+     * @return void
+     */
+    public function onLoad(): void
+    {
+        $this->_tags = explode(",", $this->private("tags") ?? "");
+        parent::onLoad();
+    }
+
+    /**
+     * @return void
+     */
+    public function onUnserialize()
+    {
+        $this->_tags = explode(",", $this->private("tags") ?? "");
+        parent::onUnserialize();
+    }
+
+    /**
+     * @return void
+     */
+    public function onSerialize()
+    {
+        $this->_cipher = null;
+        $this->_checksumValidated = false;
+        $this->_tags = [];
+        parent::onSerialize();
+    }
+
+    /**
+     * @return void
+     */
+    public function beforeQuery(): void
+    {
+        // Booleans correction
+        $this->archived = $this->archived === 1 ? 1 : 0;
+        $this->emailVerified = $this->emailVerified === 1 ? 1 : 0;
+        $this->phoneVerified = $this->phoneVerified === 1 ? 1 : 0;
+    }
 
     /**
      * @return Buffer
@@ -59,10 +102,12 @@ class User extends AbstractAppModel
      */
     public function checksum(): Buffer
     {
+        $this->updateUserTags(); // Update tags associated with user account
         $raw = sprintf(
-            "%d:%d:%d:%s:%s:%s:%d:%s:%d:%s:%d",
+            "%d:%d:%s:%d:%s:%s:%s:%d:%s:%d:%s:%d",
             $this->id,
             $this->groupId,
+            $this->private("tags"),
             $this->archived === 1 ? 1 : 0,
             trim(strtolower($this->status)),
             trim(strtolower($this->username)),
@@ -75,7 +120,7 @@ class User extends AbstractAppModel
         );
 
         try {
-            return $this->cipher()->pbkdf2("sha1", $raw, 101 + $this->id);
+            return $this->cipher()->pbkdf2("sha1", $raw, Security::PBKDF2_Iterations($this->id, static::TABLE));
         } catch (CipherException $e) {
             $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
             throw new AppException(sprintf('Failed to compute user %d checksum', $this->id));
@@ -101,6 +146,68 @@ class User extends AbstractAppModel
     public function isChecksumValidated(): bool
     {
         return (bool)$this->_checksumValidated;
+    }
+
+    /**
+     * @return array
+     */
+    public function tags(): array
+    {
+        return $this->_tags;
+    }
+
+    /**
+     * @param string $tag
+     * @return bool
+     */
+    public function hasTag(string $tag): bool
+    {
+        return in_array(strtolower(trim($tag)), $this->_tags);
+    }
+
+    /**
+     * @param string $tag
+     * @return bool
+     */
+    public function deleteTag(string $tag): bool
+    {
+        $index = array_search(strtolower(trim($tag)), $this->_tags);
+        if (is_int($index) && $index >= 0) {
+            unset($this->_tags[$index]);
+            $this->updateUserTags();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $tag
+     * @return bool
+     */
+    public function appendTag(string $tag): bool
+    {
+        $tag = strtoupper(trim($tag));
+        if (!$this->hasTag($tag)) {
+            $this->_tags[] = $tag;
+            $this->updateUserTags();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return void
+     */
+    private function updateUserTags(): void
+    {
+        $tagsStr = implode(",", array_unique($this->_tags));
+        if (strlen($tagsStr) > 512) {
+            throw new \RuntimeException(sprintf('User %d account tags exceeding limit of 512 bytes', $this->id));
+        }
+
+        $this->set("tags", $tagsStr);
     }
 
     /**

@@ -3,8 +3,13 @@ declare(strict_types=1);
 
 namespace App\Common\Database\Primary;
 
+use App\Common\AppKernel;
 use App\Common\Database\AbstractAppTable;
 use App\Common\Database\Primary\Users\Groups;
+use App\Common\Exception\AppException;
+use App\Common\Exception\AppModelNotFoundException;
+use App\Common\Users\User;
+use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema\Table\Columns;
 use Comely\Database\Schema\Table\Constraints;
 
@@ -16,6 +21,7 @@ class Users extends AbstractAppTable
 {
     public const TABLE = "users";
     public const ORM_CLASS = 'App\Common\Users\User';
+    public const CACHE_TTL = 86400;
 
     /**
      * @param Columns $cols
@@ -28,6 +34,7 @@ class Users extends AbstractAppTable
 
         $cols->int("id")->bytes(4)->unSigned()->autoIncrement();
         $cols->binary("checksum")->fixed(20);
+        $cols->string("tags")->length(512)->nullable();
         $cols->int("group_id")->bytes(4)->unSigned();
         $cols->int("archived")->bytes(1)->default(0);
         $cols->enum("status")->options("active", "disabled")->default("active");
@@ -51,5 +58,52 @@ class Users extends AbstractAppTable
 
         $constraints->foreignKey("group_id")->table(Groups::TABLE, "id");
         $constraints->foreignKey("country")->table(Countries::TABLE, "code");
+    }
+
+    /**
+     * @param int|null $id
+     * @param string|null $email
+     * @param string|null $phone
+     * @param bool $useCache
+     * @return User
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     */
+    public static function Get(?int $id = 0, ?string $email = null, ?string $phone = null, bool $useCache = true): User
+    {
+        $aK = AppKernel::getInstance();
+
+        if ($id > 0) {
+            $instanceId = sprintf("user_%d", $id);
+            $search = ["id", $id];
+        } elseif ($email) {
+            $instanceId = sprintf("user_em_%s", md5(strtolower(trim($email))));
+            $search = ["email", $email];
+        } elseif ($phone) {
+            $instanceId = sprintf("user_ph_%s", md5(strtolower(trim($phone))));
+            $search = ["phone", $phone];
+        }
+
+        if (!isset($instanceId, $search)) {
+            throw new \RuntimeException('No user search argument specified');
+        }
+
+        try {
+            $qM = $aK->memory->query($instanceId, self::ORM_CLASS);
+            if ($useCache) {
+                $qM->cache(static::CACHE_TTL);
+            }
+
+            return $qM->fetch(function () use ($search) {
+                return self::Find()->col($search[0], $search[1])->limit(1)->first();
+            });
+        } catch (\Exception $e) {
+            if ($e instanceof ORM_ModelNotFoundException) {
+                throw new AppModelNotFoundException('No such user account exists');
+            }
+
+            $aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            throw new AppException('Failed to retrieve user account');
+        }
     }
 }
