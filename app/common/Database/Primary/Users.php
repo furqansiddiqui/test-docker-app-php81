@@ -34,6 +34,7 @@ class Users extends AbstractAppTable
 
         $cols->int("id")->bytes(4)->unSigned()->autoIncrement();
         $cols->binary("checksum")->fixed(20);
+        $cols->int("referrer_id")->bytes(4)->unSigned()->nullable();
         $cols->string("tags")->length(512)->nullable();
         $cols->int("group_id")->bytes(4)->unSigned();
         $cols->int("archived")->bytes(1)->default(0);
@@ -56,6 +57,7 @@ class Users extends AbstractAppTable
         $cols->int("updated_on")->bytes(4)->unSigned();
         $cols->primaryKey("id");
 
+        $constraints->foreignKey("referrer")->table(static::TABLE, "id");
         $constraints->foreignKey("group_id")->table(Groups::TABLE, "id");
         $constraints->foreignKey("country")->table(Countries::TABLE, "code");
     }

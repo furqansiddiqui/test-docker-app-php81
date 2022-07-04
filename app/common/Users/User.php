@@ -22,6 +22,8 @@ class User extends AbstractAppModel
 
     /** @var int */
     public int $id;
+    /** @var int|null */
+    public ?int $referrerId = null;
     /** @var int */
     public int $groupId;
     /** @var int */
@@ -104,8 +106,9 @@ class User extends AbstractAppModel
     {
         $this->updateUserTags(); // Update tags associated with user account
         $raw = sprintf(
-            "%d:%d:%s:%d:%s:%s:%s:%d:%s:%d:%s:%d",
+            "%d:%d:%d:%s:%d:%s:%s:%s:%d:%s:%d:%s:%d",
             $this->id,
+            $this->referrerId > 0 ? $this->referrerId : 0,
             $this->groupId,
             $this->private("tags"),
             $this->archived === 1 ? 1 : 0,
