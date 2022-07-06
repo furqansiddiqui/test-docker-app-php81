@@ -6,7 +6,9 @@ namespace App\Common\Users;
 use App\Common\Database\AbstractAppModel;
 use App\Common\Database\Primary\Users;
 use App\Common\Exception\AppException;
+use App\Common\Kernel\ErrorHandler\Errors;
 use App\Common\Security;
+use App\Common\Validator;
 use Comely\Buffer\Buffer;
 use Comely\Security\Cipher;
 use Comely\Security\Exception\CipherException;
@@ -57,6 +59,10 @@ class User extends AbstractAppModel
     private ?bool $_checksumValidated = null;
     /** @var array */
     private array $_tags = [];
+    /** @var Credentials|null */
+    private ?Credentials $_credentials = null;
+    /** @var UserParams|null */
+    private ?UserParams $_params = null;
 
     /**
      * @return void
@@ -83,6 +89,8 @@ class User extends AbstractAppModel
     {
         $this->_cipher = null;
         $this->_checksumValidated = false;
+        $this->_credentials = null;
+        $this->_params = null;
         $this->_tags = [];
         parent::onSerialize();
     }
@@ -214,6 +222,84 @@ class User extends AbstractAppModel
     }
 
     /**
+     * @return Credentials
+     * @throws AppException
+     */
+    public function credentials(): Credentials
+    {
+        if ($this->_credentials) {
+            return $this->_credentials;
+        }
+
+        try {
+            $credentials = $this->cipher()->decrypt($this->private("credentials"));
+            if (!$credentials instanceof Credentials) {
+                throw new AppException(
+                    sprintf('Unexpected result of type "%s" while decrypting user %d credentials', Validator::getType($credentials), $this->id)
+                );
+            }
+
+            if ($credentials->userId !== $this->id) {
+                throw new AppException(
+                    sprintf('Credentials user id %d mismatches with loaded user %d', $credentials->userId, $this->id)
+                );
+            }
+        } catch (\Exception $e) {
+            if ($e instanceof AppException) {
+                throw $e;
+            }
+
+            if ($this->aK->isDebug()) {
+                trigger_error(Errors::Exception2String($e), E_USER_WARNING);
+            }
+
+            throw new AppException(sprintf('Failed to decrypt user %d credentials', $this->id));
+        }
+
+        $this->_credentials = $credentials;
+        return $this->_credentials;
+    }
+
+    /**
+     * @return UserParams
+     * @throws AppException
+     */
+    public function params(): UserParams
+    {
+        if ($this->_params) {
+            return $this->_params;
+        }
+
+        try {
+            $params = $this->cipher()->decrypt($this->private("params"));
+            if (!$params instanceof UserParams) {
+                throw new AppException(
+                    sprintf('Unexpected result of type "%s" while decrypting user %d params', Validator::getType($params), $this->id)
+                );
+            }
+
+            if ($params->userId !== $this->id) {
+                throw new AppException(
+                    sprintf('UserParams object user id %d mismatches with loaded user %d', $params->userId, $this->id)
+                );
+            }
+        } catch (\Exception $e) {
+            if ($e instanceof AppException) {
+                throw $e;
+            }
+
+            if ($this->aK->isDebug()) {
+                trigger_error(Errors::Exception2String($e), E_USER_WARNING);
+            }
+
+            throw new AppException(sprintf('Failed to decrypt user %d params', $this->id));
+        }
+
+        $this->_params = $params;
+        return $this->_params;
+    }
+
+    /**
      * @return Cipher
      * @throws AppException
      */
@@ -234,10 +320,11 @@ class User extends AbstractAppModel
     }
 
     /**
+     * @param bool $deleteRelevantObjects
      * @return void
      * @throws \Comely\Cache\Exception\CacheException
      */
-    public function deleteCached(): void
+    public function deleteCached(bool $deleteRelevantObjects = true): void
     {
         $cache = $this->aK->cache;
         $cache->delete(sprintf("user_%d", $this->id));
@@ -248,6 +335,11 @@ class User extends AbstractAppModel
 
         if ($this->phone) {
             $cache->delete(sprintf("user_ph_%s", md5(strtolower(trim($this->phone)))));
+        }
+
+        if ($deleteRelevantObjects) {
+            // Profile
+            $cache->delete(sprintf("u_prf_%d", $this->id));
         }
     }
 }

@@ -178,6 +178,15 @@ class Validator
     }
 
     /**
+     * @param mixed $val
+     * @return string
+     */
+    public static function getType(mixed $val): string
+    {
+        return is_object($val) ? get_class($val) : gettype($val);
+    }
+
+    /**
      * @param object $obj
      * @return array
      * @throws \JsonException
