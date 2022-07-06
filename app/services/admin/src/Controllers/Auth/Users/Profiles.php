@@ -28,6 +28,99 @@ class Profiles extends AuthAdminAPIController
     }
 
     /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    public function post(): void
+    {
+        $profile = $this->fetchUserProfile();
+        $changes = 0;
+
+        if ($this->inputSetProfileVar($profile, "address1", 64, "Address line 1")) {
+            $changes++;
+        }
+
+        if ($this->inputSetProfileVar($profile, "address2", 64, "Address line 2")) {
+            $changes++;
+        }
+
+        if ($this->inputSetProfileVar($profile, "postalCode", 16, "Postal Code")) {
+            $changes++;
+        }
+
+        if ($this->inputSetProfileVar($profile, "state", 32, "State/Province")) {
+            $changes++;
+        }
+
+        if ($this->inputSetProfileVar($profile, "city", 32, "City")) {
+            $changes++;
+        }
+
+        // Changes
+        if (!($changes > 0)) {
+            throw new AdminAPIException('There are no changes to be saved');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $profile->query()->where("user_id", $profile->userId)->save();
+
+            // Admin Log Entry
+            $this->adminLogEntry(
+                sprintf('User %d profile updated', $profile->userId),
+                flags: ["users", "user-profile", "user:" . $profile->userId]
+            );
+
+            $profile->isRegistered = true;
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->status(true);
+        $this->response->set("profile", $profile);
+    }
+
+    /**
+     * @param Profile $profile
+     * @param string $param
+     * @param int $maxLen
+     * @param string|null $label
+     * @return bool
+     * @throws AdminAPIException
+     */
+    private function inputSetProfileVar(Profile $profile, string $param, int $maxLen, ?string $label = null): bool
+    {
+        if (is_string($profile->$param) && !$profile->$param) {
+            $profile->$param = null;
+        }
+
+        $value = $this->input()->getASCII($param);
+        if (!$value) {
+            $value = null;
+        }
+
+        if ($value && strlen($value) > $maxLen) {
+            throw AdminAPIException::Param($param, sprintf("%s cannot exceed length of %d bytes", $label ?? $param, $maxLen));
+        }
+
+        if ($profile->$param !== $value) {
+            $profile->$param = $value;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @return Profile
      * @throws AdminAPIException
      */
