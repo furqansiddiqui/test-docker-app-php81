@@ -33,8 +33,14 @@ class Profiles extends AbstractAppTable
     {
         $cols->defaults("utf8mb4", "utf8mb4_general_ci");
 
+        $cols->binary("checksum")->fixed(20);
         $cols->int("user_id")->bytes(4)->unSigned()->unique();
-        $cols->int("is_verified")->bytes(1)->default(0);
+        $cols->int("id_verified")->bytes(1)->default(0);
+        $cols->int("address_verified")->bytes(1)->default(0);
+        $cols->string("first_name")->length(32)->nullable();
+        $cols->string("last_name")->length(32)->nullable();
+        $cols->enum("gender")->options("m", "f", "o")->nullable();
+        $cols->string("dob")->fixed(8)->nullable(); // Date of birth format: date("dmY")
         $cols->string("address1")->length(64)->nullable();
         $cols->string("address2")->length(64)->nullable();
         $cols->string("postal_code")->length(16)->nullable();

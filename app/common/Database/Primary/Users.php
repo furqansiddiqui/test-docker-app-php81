@@ -44,10 +44,6 @@ class Users extends AbstractAppTable
         $cols->int("email_verified")->bytes(1)->default(0);
         $cols->string("phone")->length(32)->nullable()->unique();
         $cols->int("phone_verified")->bytes(1)->default(0);
-        $cols->string("first_name")->length(32)
-            ->charset("utf8mb4")->collation("utf8mb4_general_ci");
-        $cols->string("last_name")->length(32)
-            ->charset("utf8mb4")->collation("utf8mb4_general_ci");
         $cols->string("country")->fixed(3)->nullable();
         $cols->binary("credentials")->length(4096); // 4 KB encrypted credentials object
         $cols->binary("params")->length(6144); // 6 KB encrypted params object

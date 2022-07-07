@@ -5,7 +5,6 @@ namespace App\Services\Admin\Controllers\Auth\Users;
 
 use App\Common\Database\Primary\Users;
 use App\Common\Exception\AppException;
-use App\Common\Kernel\ErrorHandler\Errors;
 use App\Services\Admin\Controllers\Auth\AuthAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
 use Comely\Database\Schema;
@@ -25,6 +24,90 @@ class User extends AuthAdminAPIController
         $db = $this->aK->db->primary();
         Schema::Bind($db, 'App\Common\Database\Primary\Users\Groups');
         Schema::Bind($db, 'App\Common\Database\Primary\Users');
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws \Exception
+     */
+    public function post(): void
+    {
+        $action = trim(strtolower($this->input()->getASCII("action")));
+        switch ($action) {
+            case "account":
+                $this->editAccount();
+                return;
+            case "password":
+                $this->changePassword();
+                return;
+            case "disable2fa":
+                $this->disable2fa();
+                return;
+            case "checksum":
+                $this->recomputeChecksum();
+                return;
+            case "re_credentials":
+                $this->rebuildCredentials();
+                return;
+            case "re_params":
+                $this->rebuildParams();
+                return;
+            case "delete":
+                $this->deleteUser();
+                return;
+            case "restore":
+                $this->restoreDeletedUser();
+                return;
+            default:
+                throw AdminAPIException::Param("action", "Invalid action called for user account");
+        }
+    }
+
+    private function editAccount(): void
+    {
+        $user = $this->fetchUserObject();
+        $changes = 0;
+
+        // Validators
+
+        // Username
+
+    }
+
+    private function changePassword(): void
+    {
+
+    }
+
+    private function disable2fa(): void
+    {
+
+    }
+
+    private function recomputeChecksum(): void
+    {
+
+    }
+
+    private function rebuildCredentials(): void
+    {
+
+    }
+
+    private function rebuildParams(): void
+    {
+
+    }
+
+    private function deleteUser(): void
+    {
+
+    }
+
+    private function restoreDeletedUser(): void
+    {
+
     }
 
     /**

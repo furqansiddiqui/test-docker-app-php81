@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace App\Common;
 
 use Comely\Security\Passwords;
+use Comely\Utils\UTF8\UTF8Charset;
 use Comely\Utils\Validator\ASCII_Validator;
 use Comely\Utils\Validator\StringValidator;
+use Comely\Utils\Validator\UTF8_Validator;
 
 /**
  * Class Validator
@@ -13,6 +15,23 @@ use Comely\Utils\Validator\StringValidator;
  */
 class Validator
 {
+    /**
+     * @param int $minLen
+     * @param int $maxLen
+     * @return UTF8_Validator
+     */
+    public static function UTF8(int $minLen = 2, int $maxLen = 64): UTF8_Validator
+    {
+        return \Comely\Utils\Validator\Validator::UTF8()->trim()
+            ->cleanSpaces()
+            ->len(min: $minLen, max: $maxLen)
+            ->addCharset(UTF8Charset::Arabic)
+            ->addCharset(UTF8Charset::Russian)
+            ->addCharset(UTF8Charset::Hebrew)
+            ->addCharset(UTF8Charset::Thai)
+            ->utf8Options(allowASCII: true, allowSpaces: true, filterOutIllegals: false);
+    }
+
     /**
      * @param int $maxLength
      * @param bool $allowDashes

@@ -42,10 +42,6 @@ class User extends AbstractAppModel
     public ?string $phone = null;
     /** @var int */
     public int $phoneVerified = 0;
-    /** @var string */
-    public string $firstName;
-    /** @var string */
-    public string $lastName;
     /** @var string|null */
     public ?string $country = null;
     /** @var int */
