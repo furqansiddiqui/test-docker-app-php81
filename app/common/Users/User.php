@@ -16,6 +16,7 @@ use Comely\Security\Exception\CipherException;
 /**
  * Class User
  * @package App\Common\Users
+ * @property string $referrerUsername;
  */
 class User extends AbstractAppModel
 {

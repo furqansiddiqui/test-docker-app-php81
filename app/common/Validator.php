@@ -64,6 +64,19 @@ class Validator
     }
 
     /**
+     * @param int $minLength
+     * @param int $maxLength
+     * @return StringValidator
+     */
+    public static function Username(int $minLength = 6, int $maxLength = 16): StringValidator
+    {
+        return \Comely\Utils\Validator\Validator::String()->trim()
+            ->cleanSpaces()
+            ->len(min: $minLength, max: $maxLength)
+            ->match('/^[a-zA-Z0-9]+[a-zA-Z0-9\-\_]?[a-zA-Z0-9]+$/');
+    }
+
+    /**
      * @param int $minLen
      * @param int $maxLen
      * @param int $minStrength
