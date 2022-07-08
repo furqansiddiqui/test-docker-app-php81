@@ -9,6 +9,9 @@ use App\Common\Database\Primary\Users\Groups;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
 use App\Common\Users\User;
+use App\Common\Validator;
+use Comely\Cache\Exception\CacheException;
+use Comely\Database\Exception\DatabaseException;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema\Table\Columns;
 use Comely\Database\Schema\Table\Constraints;
@@ -60,6 +63,7 @@ class Users extends AbstractAppTable
 
     /**
      * @param int|null $id
+     * @param string|null $username
      * @param string|null $email
      * @param string|null $phone
      * @param bool $useCache
@@ -67,13 +71,16 @@ class Users extends AbstractAppTable
      * @throws AppException
      * @throws AppModelNotFoundException
      */
-    public static function Get(?int $id = 0, ?string $email = null, ?string $phone = null, bool $useCache = true): User
+    public static function Get(?int $id = 0, ?string $username = null, ?string $email = null, ?string $phone = null, bool $useCache = true): User
     {
         $aK = AppKernel::getInstance();
 
         if ($id > 0) {
             $instanceId = sprintf("user_%d", $id);
             $search = ["id", $id];
+        } elseif ($username) {
+            $instanceId = sprintf("user_u_%s", strtolower(trim($username)));
+            $search = ["username", $username];
         } elseif ($email) {
             $instanceId = sprintf("user_em_%s", md5(strtolower(trim($email))));
             $search = ["email", $email];
@@ -103,5 +110,53 @@ class Users extends AbstractAppTable
             $aK->errors->triggerIfDebug($e, E_USER_WARNING);
             throw new AppException('Failed to retrieve user account');
         }
+    }
+
+    /**
+     * @param int $userId
+     * @return string
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     */
+    public static function CachedUsername(int $userId): string
+    {
+        $aK = AppKernel::getInstance();
+        $cacheKey = sprintf("u_username_%d", $userId);
+
+        try {
+            $username = $aK->cache->get($cacheKey);
+        } catch (CacheException) {
+        }
+
+        if (isset($username) && Validator::isValidUsername($username)) {
+            return $username;
+        }
+
+        try {
+            $userRow = $aK->db->primary()->query()->table(self::TABLE)
+                ->cols("id", "username")
+                ->where('`id`=?', [$userId])
+                ->fetch()
+                ->row();
+        } catch (DatabaseException) {
+        }
+
+        if (!isset($userRow) || !is_array($userRow) || !isset($userRow["username"])) {
+            throw new AppModelNotFoundException(sprintf('No such user account %d exists', $userId));
+        }
+
+        $username = $userRow["username"];
+        if (!Validator::isValidUsername($userRow)) {
+            throw new AppException(sprintf('User account %d has invalid username', $userId));
+        }
+
+        try {
+            $aK->cache->set($cacheKey, $username, static::CACHE_TTL * 7);
+        } catch (CacheException $e) {
+            $aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            $aK->errors->trigger('Failed to store username in cache', E_USER_WARNING);
+        }
+
+        return $username;
     }
 }

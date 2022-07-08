@@ -138,6 +138,21 @@ class Validator
     }
 
     /**
+     * @param mixed $username
+     * @return bool
+     */
+    public static function isValidUsername(mixed $username): bool
+    {
+        if (is_string($username) && preg_match('/^[a-zA-Z0-9]+[a-zA-Z0-9\-_]?[a-zA-Z0-9]+$/', $username)) {
+            $len = strlen($username);
+            if ($len >= 6 && $len <= 16) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param mixed $port
      * @param int $min
      * @return bool

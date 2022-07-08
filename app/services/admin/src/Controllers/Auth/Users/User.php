@@ -7,6 +7,9 @@ use App\Common\Database\Primary\Countries;
 use App\Common\Database\Primary\Users;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
+use App\Common\Users\Credentials;
+use App\Common\Users\UserParams;
+use App\Common\Users\UserTagsInterface;
 use App\Common\Validator;
 use App\Services\Admin\Controllers\Auth\AuthAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
@@ -64,6 +67,12 @@ class User extends AuthAdminAPIController
                 return;
             case "restore":
                 $this->restoreDeletedUser();
+                return;
+            case "referrer":
+                $this->changeReferrer();
+                return;
+            case "verifications":
+                $this->updateVerifications();
                 return;
             default:
                 throw AdminAPIException::Param("action", "Invalid action called for user account");
@@ -273,49 +282,388 @@ class User extends AuthAdminAPIController
             throw $e;
         }
 
-        try {
-            $user->deleteCached(false);
-        } catch (CacheException $e) {
-            $this->aK->errors->trigger($e, E_USER_WARNING);
-        }
-
+        $this->afterUserIsUpdated($user);
         $this->status(true);
         $this->response->set("user", $user);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     * @throws \Comely\Database\Exception\DbConnectionException
+     * @throws \Comely\Database\Exception\PDO_Exception
+     */
     private function changeReferrer(): void
     {
+        $user = $this->fetchUserObject(true);
 
+        $referrerUsername = trim($this->input()->getASCII("referrer"));
+        if ($referrerUsername) {
+            try {
+                if (!Validator::isValidUsername($referrerUsername)) {
+                    throw new AdminAPIException('Invalid referrer username');
+                }
+                try {
+                    $referrer = Users::Get(username: $referrerUsername, useCache: true);
+                } catch (AppModelNotFoundException) {
+                    throw new AdminAPIException('No such referrer account exists');
+                }
+
+                if ($referrer->id === $user->id) {
+                    throw new AdminAPIException('Cannot be own referrer');
+                }
+            } catch (AdminAPIException $e) {
+                $e->setParam("referrer");
+                throw $e;
+            }
+        }
+
+        $referrerId = isset($referrer) ? $referrer->id : null;
+        if ($user->referrerId === $referrerId) {
+            throw new AdminAPIException('There are no changes to be saved!');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->referrerId = $referrerId;
+            $user->updatedOn = time();
+            $user->set("checksum", $user->checksum()->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" referrer changed to "%s"', $user->username, isset($referrer) ? $referrer->username : "NULL"),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+        } catch (\Exception $e) {
+            $db->error();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
+        $this->response->set("referrer", isset($referrer) ? $referrer->username : null);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
     private function updateVerifications(): void
     {
+        $user = $this->fetchUserObject(true);
+        $changes = 0;
+        $adminLogs = [];
 
+        // E-mail verification
+        $emailVerified = Validator::getBool(trim($this->input()->getASCII("emailVerified")));
+        if ($emailVerified !== (bool)$user->emailVerified) {
+            if ($emailVerified && !$user->email) {
+                throw new AdminAPIException('This account does not have an e-mail address set');
+            }
+
+            $user->emailVerified = $emailVerified ? 1 : 0;
+            $adminLogs[] = sprintf('User "%s" e-mail address "%s" marked as %s', $user->username, $user->email, $emailVerified ? "VERIFIED" : "UNVERIFIED");
+            $changes++;
+        }
+
+        // Phone verification
+        $phoneVerified = Validator::getBool(trim($this->input()->getASCII("phoneVerified")));
+        if ($phoneVerified !== (bool)$user->phoneVerified) {
+            if ($emailVerified && !$user->phone) {
+                throw new AdminAPIException('This account does not have a phone no. set');
+            }
+
+            $user->phoneVerified = $phoneVerified ? 1 : 0;
+            $adminLogs[] = sprintf('User "%s" phone no. "%s" marked as %s', $user->username, $user->phone, $phoneVerified ? "VERIFIED" : "UNVERIFIED");
+            $changes++;
+        }
+
+        // Changes
+        if (!($changes > 0)) {
+            throw new AdminAPIException('There are no changes to be saved');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->updatedOn = time();
+            $user->set("checksum", $user->checksum()->raw());
+            $user->query()->update();
+
+            foreach ($adminLogs as $adminLog) {
+                $this->adminLogEntry($adminLog, flags: ["users", "user-account", "user:" . $user->id]);
+            }
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws ValidatorException
+     * @throws \Comely\Database\Exception\DbConnectionException
+     * @throws \Comely\Database\Exception\PDO_Exception
+     */
     private function changePassword(): void
     {
+        $user = $this->fetchUserObject(true);
+        $credentials = $user->credentials();
+        $passwordValidator = Validator::Password(minStrength: 3);
 
+        // New temporary password
+        try {
+            $tempPassword = $passwordValidator->getValidated(trim($this->input()->getASCII("password")));
+        } catch (ValidatorException $e) {
+            $errMsg = match ($e->getCode()) {
+                \Comely\Utils\Validator\Validator::ASCII_CHARSET_ERROR,
+                \Comely\Utils\Validator\Validator::ASCII_PRINTABLE_ERROR => 'Password contains an illegal character',
+                \Comely\Utils\Validator\Validator::LENGTH_UNDERFLOW_ERROR => 'Password must be 8 characters long',
+                \Comely\Utils\Validator\Validator::LENGTH_OVERFLOW_ERROR => 'Password cannot exceed 32 characters',
+                \Comely\Utils\Validator\Validator::CALLBACK_TYPE_ERROR => 'Password is not strong enough',
+                default => 'Invalid password'
+            };
+
+            throw AdminAPIException::Param("password", $errMsg);
+        }
+
+        // Already same password?
+        if ($credentials->verifyPassword($tempPassword)) {
+            throw new AdminAPIException('There are no changes to be saved');
+        }
+
+        // Add the tag?
+        try {
+            $addFlag = trim($this->input()->getASCII("flag"));
+            if ($addFlag) {
+                if (!in_array($addFlag, [UserTagsInterface::SUGGEST_PASSWORD_CHANGE, UserTagsInterface::FORCE_PASSWORD_CHANGE])) {
+                    throw new AdminAPIException('Cannot add irrelevant flag with password change');
+                }
+            }
+        } catch (AdminAPIException $e) {
+            $e->setParam("flag");
+            throw $e;
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $credentials->changePassword($tempPassword);
+            $user->updatedOn = time();
+            $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" password changed', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Security\Exception\CipherException
+     */
     private function disable2fa(): void
     {
+        $user = $this->fetchUserObject(true);
 
+        $credentials = $user->credentials();
+        $credentials->changeGoogleAuthSeed(null);
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->updatedOn = time();
+            $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" 2FA disabled', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
     private function recomputeChecksum(): void
     {
+        $user = $this->fetchUserObject(false);
+        if ($user->isChecksumValidated()) {
+            throw new AdminAPIException('Checksum for this user is already OK');
+        }
 
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->updatedOn = time();
+            $user->set("checksum", $user->checksum()->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" checksum recomputed', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Security\Exception\CipherException
+     */
     private function rebuildCredentials(): void
     {
+        $user = $this->fetchUserObject(true);
 
+        try {
+            $credentials = $user->credentials();
+        } catch (AppException) {
+        }
+
+        if (isset($credentials)) {
+            throw new AdminAPIException('User credentials object already OK');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $credentials = new Credentials($user);
+            $user->updatedOn = time();
+            $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" credentials rebuilt', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Security\Exception\CipherException
+     */
     private function rebuildParams(): void
     {
+        $user = $this->fetchUserObject(true);
 
+        try {
+            $params = $user->params();
+        } catch (AppException) {
+        }
+
+        if (isset($params)) {
+            throw new AdminAPIException('User encrypted params object already OK');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $params = new UserParams($user);
+            $user->updatedOn = time();
+            $user->set("params", $user->cipher()->encrypt($params)->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" encrypted params rebuilt', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+        $this->status(true);
     }
 
     /**
@@ -354,12 +702,7 @@ class User extends AuthAdminAPIController
             throw $e;
         }
 
-        try {
-            $user->deleteCached(false);
-        } catch (CacheException $e) {
-            $this->aK->errors->trigger($e, E_USER_WARNING);
-        }
-
+        $this->afterUserIsUpdated($user);
         $this->status(true);
     }
 
@@ -399,12 +742,7 @@ class User extends AuthAdminAPIController
             throw $e;
         }
 
-        try {
-            $user->deleteCached(false);
-        } catch (CacheException $e) {
-            $this->aK->errors->trigger($e, E_USER_WARNING);
-        }
-
+        $this->afterUserIsUpdated($user);
         $this->status(true);
     }
 
@@ -424,11 +762,41 @@ class User extends AuthAdminAPIController
             $errors[] = $e->getMessage();
         }
 
+        // Referrer
+        try {
+            $user->referrerUsername = $user->referrerId ? Users::CachedUsername($user->referrerId) : null;
+        } catch (AppException $e) {
+            $errors[] = $e->getMessage();
+            $errors[] = "Failed to retrieve referrer username";
+        }
+
+        // Referrals Counts
+        try {
+            $user->getReferralsCount();
+        } catch (AppException $e) {
+            $user->referralsCount = -1;
+            $errors[] = $e->getMessage();
+        }
+
         $this->status(true);
         $this->response->set("user", $user);
         $this->response->set("tags", $user->tags());
         $this->response->set("params", $params ?? null);
         $this->response->set("errors", $errors);
+        $this->response->set("knownUsersFlags", UserTagsInterface::KNOWN_FLAGS);
+    }
+
+    /**
+     * @param \App\Common\Users\User $user
+     * @return void
+     */
+    private function afterUserIsUpdated(\App\Common\Users\User $user): void
+    {
+        try {
+            $user->deleteCached(false);
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
+        }
     }
 
     /**

@@ -10,13 +10,15 @@ use App\Common\Kernel\ErrorHandler\Errors;
 use App\Common\Security;
 use App\Common\Validator;
 use Comely\Buffer\Buffer;
+use Comely\Cache\Exception\CacheException;
 use Comely\Security\Cipher;
 use Comely\Security\Exception\CipherException;
 
 /**
  * Class User
  * @package App\Common\Users
- * @property string $referrerUsername;
+ * @property string|null $referrerUsername
+ * @property int|null $referralsCount
  */
 class User extends AbstractAppModel
 {
@@ -68,6 +70,13 @@ class User extends AbstractAppModel
     {
         $this->_tags = explode(",", $this->private("tags") ?? "");
         parent::onLoad();
+
+        try {
+            $this->aK->cache->set(sprintf("u_username_%d", $this->id), $this->username);
+        } catch (CacheException $e) {
+            $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            $this->aK->errors->trigger('Failed to store loaded username is cache', E_USER_WARNING);
+        }
     }
 
     /**
@@ -317,6 +326,32 @@ class User extends AbstractAppModel
     }
 
     /**
+     * @return int
+     * @throws AppException
+     */
+    public function getReferralsCount(): int
+    {
+        try {
+            $db = $this->aK->db->primary();
+            $query = $db->fetch(sprintf('SELECT ' . 'count(*) FROM `%s` WHERE `referrer_id`=?', Users::TABLE), [$this->id]);
+            $count = $query->row();
+
+            if (!isset($count["count(*)"])) {
+                throw new \RuntimeException();
+            }
+
+            $this->referralsCount = intval($count["count(*)"]);
+            return $this->referralsCount;
+        } catch (\Exception $e) {
+            if (!$e instanceof \RuntimeException) {
+                $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            }
+
+            throw new AppException(sprintf('Failed to retrieve user "%s" referrals count', $this->username));
+        }
+    }
+
+    /**
      * @param bool $deleteRelevantObjects
      * @return void
      * @throws \Comely\Cache\Exception\CacheException
@@ -325,6 +360,7 @@ class User extends AbstractAppModel
     {
         $cache = $this->aK->cache;
         $cache->delete(sprintf("user_%d", $this->id));
+        $cache->delete(sprintf("user_u_%s", strtolower(trim($this->username))));
 
         if ($this->email) {
             $cache->delete(sprintf("user_em_%s", md5(strtolower(trim($this->email)))));
@@ -333,6 +369,9 @@ class User extends AbstractAppModel
         if ($this->phone) {
             $cache->delete(sprintf("user_ph_%s", md5(strtolower(trim($this->phone)))));
         }
+
+        // Username
+        $cache->delete(sprintf("u_username_%d", $this->id));
 
         if ($deleteRelevantObjects) {
             // Profile

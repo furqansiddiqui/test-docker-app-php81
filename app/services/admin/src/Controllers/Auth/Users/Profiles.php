@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace App\Services\Admin\Controllers\Auth\Users;
 
+use App\Common\Database\Primary\Users;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
 use App\Common\Users\Profile;
 use App\Common\Validator;
 use App\Services\Admin\Controllers\Auth\AuthAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
+use Comely\Cache\Exception\CacheException;
 use Comely\Database\Schema;
 use Comely\Utils\Validator\Exception\ValidatorException;
 use Comely\Utils\Validator\UTF8_Validator;
@@ -39,9 +41,95 @@ class Profiles extends AuthAdminAPIController
      * @return void
      * @throws AdminAPIException
      * @throws AppException
+     * @throws AppModelNotFoundException
      * @throws \Comely\Database\Exception\DatabaseException
      */
     public function post(): void
+    {
+        $action = trim(strtolower($this->input()->getASCII("action")));
+        switch ($action) {
+            case "update":
+                $this->editProfile();
+                return;
+            case "verifications":
+                $this->updateVerifications();
+                return;
+            default:
+                throw AdminAPIException::Param("action", "Invalid action called for user account");
+        }
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    private function updateVerifications(): void
+    {
+        $profile = $this->fetchUserProfile();
+        $user = Users::Get(id: $profile->userId, useCache: true);
+        $changes = 0;
+        $adminLogs = [];
+
+        // Identity verification
+        $idVerified = Validator::getBool(trim($this->input()->getASCII("idVerified")));
+        if ($idVerified !== (bool)$profile->idVerified) {
+            $profile->idVerified = $idVerified ? 1 : 0;
+            $adminLogs[] = sprintf('User "%s" identity marked as %s', $user->username, $idVerified ? "VERIFIED" : "UNVERIFIED");
+            $changes++;
+        }
+
+        // Address verification
+        $addressVerified = Validator::getBool(trim($this->input()->getASCII("addressVerified")));
+        if ($addressVerified !== (bool)$profile->addressVerified) {
+            $profile->addressVerified = $addressVerified ? 1 : 0;
+            $adminLogs[] = sprintf('User "%s" address marked as %s', $user->username, $addressVerified ? "VERIFIED" : "UNVERIFIED");
+            $changes++;
+        }
+
+        // Changes
+        if (!($changes > 0)) {
+            throw new AdminAPIException('There are no changes to be saved');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $profile->set("checksum", $profile->checksum()->raw());
+            $profile->query()->update();
+
+            foreach ($adminLogs as $adminLog) {
+                $this->adminLogEntry($adminLog, flags: ["users", "user-profile", "user:" . $profile->userId]);
+            }
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        try {
+            $profile->deleteCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
+        }
+
+        $this->status(true);
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    private function editProfile(): void
     {
         $profile = $this->fetchUserProfile();
         $changes = 0;
@@ -139,6 +227,12 @@ class Profiles extends AuthAdminAPIController
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
+        }
+
+        try {
+            $profile->deleteCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
         }
 
         $this->status(true);
