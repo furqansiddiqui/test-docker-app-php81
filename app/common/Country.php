@@ -23,6 +23,6 @@ class Country extends AbstractAppModel
     public string $code;
     /** @var string */
     public string $codeShort;
-    /** @var int */
-    public int $dialCode;
+    /** @var int|null */
+    public ?int $dialCode = null;
 }
