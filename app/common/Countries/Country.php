@@ -1,19 +1,19 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Common;
+namespace App\Common\Countries;
 
 use App\Common\Database\AbstractAppModel;
 use App\Common\Database\Primary\Countries;
 
 /**
  * Class Country
- * @package App\Common
+ * @package App\Common\Countries
  */
 class Country extends AbstractAppModel
 {
     public const TABLE = Countries::TABLE;
-    public const SERIALIZABLE = true;
+    public const SERIALIZABLE = false;
 
     /** @var int */
     public int $available = 0;

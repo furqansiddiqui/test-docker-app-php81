@@ -4,11 +4,10 @@ declare(strict_types=1);
 namespace App\Common\Database\Primary;
 
 use App\Common\AppKernel;
-use App\Common\Country;
+use App\Common\Countries\Country;
 use App\Common\Database\AbstractAppTable;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
-use App\Common\Users\User;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema\Table\Columns;
 use Comely\Database\Schema\Table\Constraints;
@@ -20,7 +19,7 @@ use Comely\Database\Schema\Table\Constraints;
 class Countries extends AbstractAppTable
 {
     public const TABLE = "countries";
-    public const ORM_CLASS = 'App\Common\Country';
+    public const ORM_CLASS = 'App\Common\Countries\Country';
     public const CACHE_TTL = 86400;
 
     /**
