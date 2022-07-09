@@ -110,7 +110,6 @@ class User extends AuthAdminAPIController
 
                 if (isset($dupEmail)) {
                     throw new AdminAPIException('This e-mail address is already registered');
-
                 }
             }
         } catch (AdminAPIException $e) {
@@ -127,6 +126,17 @@ class User extends AuthAdminAPIController
                 }
             } else {
                 $phone = null;
+            }
+
+            if ($phone) {
+                try {
+                    $dupPhone = Users::Find()->query('WHERE `phone`=?', [$phone])->first();
+                } catch (ORM_ModelNotFoundException) {
+                }
+
+                if (isset($dupPhone)) {
+                    throw new AdminAPIException('This phone number is already registered');
+                }
             }
         } catch (AdminAPIException $e) {
             $e->setParam("phone");
