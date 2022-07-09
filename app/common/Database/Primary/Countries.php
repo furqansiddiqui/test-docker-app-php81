@@ -36,7 +36,7 @@ class Countries extends AbstractAppTable
         $cols->string("name")->length(32);
         $cols->string("code")->fixed(3)->unique();
         $cols->string("code_short")->fixed(2)->unique();
-        $cols->int("dial_code")->bytes(3)->unSigned();
+        $cols->int("dial_code")->bytes(3)->unSigned()->nullable();
     }
 
     /**
