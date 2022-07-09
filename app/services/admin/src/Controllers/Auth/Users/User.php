@@ -174,6 +174,7 @@ class User extends AuthAdminAPIController
             $user->set("checksum", $user->checksum()->raw());
             $user->set("credentials", $user->cipher()->encrypt((new Credentials($user)))->raw());
             $user->set("params", $user->cipher()->encrypt((new UserParams($user)))->raw());
+            $user->query()->where("id", $user->id)->update();
 
             $this->adminLogEntry(
                 sprintf('User account %d with username "%s" created', $user->id, $user->username),
