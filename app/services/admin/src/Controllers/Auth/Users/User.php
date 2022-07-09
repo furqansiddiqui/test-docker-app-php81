@@ -186,6 +186,7 @@ class User extends AuthAdminAPIController
         }
 
         $this->status(true);
+        $this->response->set("id", $user->id);
     }
 
     /**
