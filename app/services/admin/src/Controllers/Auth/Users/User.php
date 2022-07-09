@@ -26,6 +26,8 @@ class User extends AuthAdminAPIController
 {
     /**
      * @return void
+     * @throws AdminAPIException
+     * @throws AppException
      * @throws \Comely\Database\Exception\DbConnectionException
      */
     protected function authCallback(): void
@@ -33,6 +35,11 @@ class User extends AuthAdminAPIController
         $db = $this->aK->db->primary();
         Schema::Bind($db, 'App\Common\Database\Primary\Users\Groups');
         Schema::Bind($db, 'App\Common\Database\Primary\Users');
+
+        $privileges = $this->admin->privileges();
+        if (!$privileges->isRoot() && !$privileges->manageUsers) {
+            throw new AdminAPIException('You are not privileged for user management');
+        }
     }
 
     /**
