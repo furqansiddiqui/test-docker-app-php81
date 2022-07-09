@@ -3,8 +3,16 @@ declare(strict_types=1);
 
 namespace App\Common\Database\Primary;
 
+use App\Common\AppKernel;
 use App\Common\Database\AbstractAppTable;
 use App\Common\Database\Primary\Users\Groups;
+use App\Common\Exception\AppException;
+use App\Common\Exception\AppModelNotFoundException;
+use App\Common\Users\User;
+use App\Common\Validator;
+use Comely\Cache\Exception\CacheException;
+use Comely\Database\Exception\DatabaseException;
+use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema\Table\Columns;
 use Comely\Database\Schema\Table\Constraints;
 
@@ -16,6 +24,7 @@ class Users extends AbstractAppTable
 {
     public const TABLE = "users";
     public const ORM_CLASS = 'App\Common\Users\User';
+    public const CACHE_TTL = 86400;
 
     /**
      * @param Columns $cols
@@ -28,6 +37,8 @@ class Users extends AbstractAppTable
 
         $cols->int("id")->bytes(4)->unSigned()->autoIncrement();
         $cols->binary("checksum")->fixed(20);
+        $cols->int("referrer_id")->bytes(4)->unSigned()->nullable();
+        $cols->string("tags")->length(512)->nullable();
         $cols->int("group_id")->bytes(4)->unSigned();
         $cols->int("archived")->bytes(1)->default(0);
         $cols->enum("status")->options("active", "disabled")->default("active");
@@ -36,10 +47,6 @@ class Users extends AbstractAppTable
         $cols->int("email_verified")->bytes(1)->default(0);
         $cols->string("phone")->length(32)->nullable()->unique();
         $cols->int("phone_verified")->bytes(1)->default(0);
-        $cols->string("first_name")->length(32)
-            ->charset("utf8mb4")->collation("utf8mb4_general_ci");
-        $cols->string("last_name")->length(32)
-            ->charset("utf8mb4")->collation("utf8mb4_general_ci");
         $cols->string("country")->fixed(3)->nullable();
         $cols->binary("credentials")->length(4096); // 4 KB encrypted credentials object
         $cols->binary("params")->length(6144); // 6 KB encrypted params object
@@ -49,7 +56,107 @@ class Users extends AbstractAppTable
         $cols->int("updated_on")->bytes(4)->unSigned();
         $cols->primaryKey("id");
 
+        $constraints->foreignKey("referrer")->table(static::TABLE, "id");
         $constraints->foreignKey("group_id")->table(Groups::TABLE, "id");
         $constraints->foreignKey("country")->table(Countries::TABLE, "code");
+    }
+
+    /**
+     * @param int|null $id
+     * @param string|null $username
+     * @param string|null $email
+     * @param string|null $phone
+     * @param bool $useCache
+     * @return User
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     */
+    public static function Get(?int $id = 0, ?string $username = null, ?string $email = null, ?string $phone = null, bool $useCache = true): User
+    {
+        $aK = AppKernel::getInstance();
+
+        if ($id > 0) {
+            $instanceId = sprintf("user_%d", $id);
+            $search = ["id", $id];
+        } elseif ($username) {
+            $instanceId = sprintf("user_u_%s", strtolower(trim($username)));
+            $search = ["username", $username];
+        } elseif ($email) {
+            $instanceId = sprintf("user_em_%s", md5(strtolower(trim($email))));
+            $search = ["email", $email];
+        } elseif ($phone) {
+            $instanceId = sprintf("user_ph_%s", md5(strtolower(trim($phone))));
+            $search = ["phone", $phone];
+        }
+
+        if (!isset($instanceId, $search)) {
+            throw new \RuntimeException('No user search argument specified');
+        }
+
+        try {
+            $qM = $aK->memory->query($instanceId, self::ORM_CLASS);
+            if ($useCache) {
+                $qM->cache(static::CACHE_TTL);
+            }
+
+            return $qM->fetch(function () use ($search) {
+                return self::Find()->col($search[0], $search[1])->limit(1)->first();
+            });
+        } catch (\Exception $e) {
+            if ($e instanceof ORM_ModelNotFoundException) {
+                throw new AppModelNotFoundException('No such user account exists');
+            }
+
+            $aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            throw new AppException('Failed to retrieve user account');
+        }
+    }
+
+    /**
+     * @param int $userId
+     * @return string
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     */
+    public static function CachedUsername(int $userId): string
+    {
+        $aK = AppKernel::getInstance();
+        $cacheKey = sprintf("u_username_%d", $userId);
+
+        try {
+            $username = $aK->cache->get($cacheKey);
+        } catch (CacheException) {
+        }
+
+        if (isset($username) && Validator::isValidUsername($username)) {
+            return $username;
+        }
+
+        try {
+            $userRow = $aK->db->primary()->query()->table(self::TABLE)
+                ->cols("id", "username")
+                ->where('`id`=?', [$userId])
+                ->fetch()
+                ->row();
+        } catch (DatabaseException) {
+        }
+
+        if (!isset($userRow) || !is_array($userRow) || !isset($userRow["username"])) {
+            throw new AppModelNotFoundException(sprintf('No such user account %d exists', $userId));
+        }
+
+        $username = $userRow["username"];
+        if (!Validator::isValidUsername($userRow)) {
+            throw new AppException(sprintf('User account %d has invalid username', $userId));
+        }
+
+        try {
+            $aK->cache->set($cacheKey, $username, static::CACHE_TTL * 7);
+        } catch (CacheException $e) {
+            $aK->errors->triggerIfDebug($e, E_USER_WARNING);
+            $aK->errors->trigger('Failed to store username in cache', E_USER_WARNING);
+        }
+
+        return $username;
     }
 }

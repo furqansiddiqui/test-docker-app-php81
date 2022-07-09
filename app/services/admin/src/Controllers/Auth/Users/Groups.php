@@ -41,6 +41,7 @@ class Groups extends AuthAdminAPIController
      */
     public function put(): void
     {
+        $this->checkAdminPermission();
         $nameValidator = Validator::Name(32, true);
 
         // Group name
@@ -94,6 +95,7 @@ class Groups extends AuthAdminAPIController
      */
     public function post(): void
     {
+        $this->checkAdminPermission();
         $group = $this->fetchGroupObject();
         $nameValidator = Validator::Name(32, true);
 
@@ -154,6 +156,7 @@ class Groups extends AuthAdminAPIController
      */
     public function delete(): void
     {
+        $this->checkAdminPermission();
         $group = $this->fetchGroupObject();
         $db = $this->aK->db->primary();
 
@@ -208,6 +211,21 @@ class Groups extends AuthAdminAPIController
             throw $e;
         } catch (AppException $e) {
             throw  AdminAPIException::Param("group", $e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     */
+    private function checkAdminPermission(): void
+    {
+        $privileges = $this->admin->privileges();
+        if (!$privileges->isRoot()) {
+            if (!$privileges->manageUsers) {
+                throw new AdminAPIException('You do not have privilege to manage user groups');
+            }
         }
     }
 
