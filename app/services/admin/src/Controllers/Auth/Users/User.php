@@ -37,7 +37,7 @@ class User extends AuthAdminAPIController
         Schema::Bind($db, 'App\Common\Database\Primary\Users');
 
         $privileges = $this->admin->privileges();
-        if (!$privileges->isRoot() || !$privileges->manageUsers) {
+        if (!$privileges->isRoot() && !$privileges->manageUsers) {
             throw new AdminAPIException('You are not privileged for user management');
         }
     }
