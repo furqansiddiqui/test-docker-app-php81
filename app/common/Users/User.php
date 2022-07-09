@@ -19,6 +19,7 @@ use Comely\Security\Exception\CipherException;
  * @package App\Common\Users
  * @property string|null $referrerUsername
  * @property int|null $referralsCount
+ * @property bool|null $checksumVerified
  */
 class User extends AbstractAppModel
 {
