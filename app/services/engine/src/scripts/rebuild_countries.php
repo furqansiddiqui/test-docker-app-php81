@@ -49,7 +49,7 @@ class rebuild_countries extends AbstractCLIScript
 
         $db = $this->aK->db->primary();
         foreach ($countriesTSV as $country) {
-            $country = preg_split('/[\s,\t]+/', $country);
+            $country = explode("\t", $country);
             if (!$country) {
                 throw new AppException('Failed to read a country line');
             }
