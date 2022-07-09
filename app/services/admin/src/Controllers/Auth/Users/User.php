@@ -164,8 +164,8 @@ class User extends AuthAdminAPIController
             $user->phone = $phone;
             $user->phoneVerified = 0;
             $user->country = null;
-            $user->set("credentials", null);
-            $user->set("params", null);
+            $user->set("credentials", "tba");
+            $user->set("params", "tba");
             $user->createdOn = time();
             $user->updatedOn = time();
 
