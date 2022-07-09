@@ -38,6 +38,149 @@ class User extends AuthAdminAPIController
     /**
      * @return void
      * @throws AdminAPIException
+     * @throws AppException
+     * @throws AppModelNotFoundException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    public function put(): void
+    {
+        // Validators
+        $usernameValidator = Validator::Username(6, 16);
+        $emailValidator = Validator::EmailAddress(64);
+
+        // Group
+        try {
+            $groupId = $this->input()->getInt("groupId", unSigned: true);
+            if (!($groupId > 0)) {
+                throw new AdminAPIException('Select a group for new user');
+            }
+
+            try {
+                $group = Users\Groups::get($groupId, useCache: true);
+            } catch (AppModelNotFoundException) {
+                throw new AdminAPIException('No such group exists');
+            }
+        } catch (AdminAPIException $e) {
+            $e->setParam("groupId");
+            throw $e;
+        }
+
+        // Username
+        try {
+            try {
+                $username = $usernameValidator->getValidated(trim($this->input()->getASCII("username")));
+            } catch (ValidatorException $e) {
+                $errMsg = match ($e->getCode()) {
+                    \Comely\Utils\Validator\Validator::ASCII_PRINTABLE_ERROR,
+                    \Comely\Utils\Validator\Validator::ASCII_CHARSET_ERROR => 'Username contains an illegal character',
+                    \Comely\Utils\Validator\Validator::LENGTH_UNDERFLOW_ERROR => 'Username must must be minimum 6 characters long',
+                    \Comely\Utils\Validator\Validator::LENGTH_OVERFLOW_ERROR => 'Username cannot exceed 16 characters',
+                    default => 'Invalid username',
+                };
+
+                throw new AdminAPIException($errMsg, $e->getCode());
+            }
+
+            try {
+                $dupUsername = Users::Find()->query('WHERE `username`=?', [$username])->first();
+            } catch (ORM_ModelNotFoundException) {
+            }
+
+            if (isset($dupUsername)) {
+                throw new AdminAPIException('This username is already registered');
+            }
+        } catch (AdminAPIException $e) {
+            $e->setParam("username");
+            throw $e;
+        }
+
+        // Email Address
+        try {
+            try {
+                $email = $emailValidator->getNullable(trim($this->input()->getASCII("email")));
+            } catch (ValidatorException $e) {
+                throw new AdminAPIException('Invalid e-mail address', $e->getCode());
+            }
+
+            if ($email) {
+                try {
+                    $dupEmail = Users::Find()->query('WHERE `email`=?', [$email])->first();
+                } catch (ORM_ModelNotFoundException) {
+                }
+
+                if (isset($dupEmail)) {
+                    throw new AdminAPIException('This e-mail address is already registered');
+
+                }
+            }
+        } catch (AdminAPIException $e) {
+            $e->setParam("email");
+            throw $e;
+        }
+
+        // Phone
+        try {
+            $phone = trim($this->input()->getASCII("phone"));
+            if ($phone) {
+                if (!Validator::isValidPhone($phone)) {
+                    throw new AdminAPIException('Invalid phone number');
+                }
+            } else {
+                $phone = null;
+            }
+        } catch (AdminAPIException $e) {
+            $e->setParam("phone");
+            throw $e;
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user = new \App\Common\Users\User();
+            $user->id = 0;
+            $user->set("checksum", "tba");
+            $user->referrerId = null;
+            $user->set("tags", null);
+            $user->groupId = $group->id;
+            $user->archived = 0;
+            $user->status = "disabled";
+            $user->username = $username;
+            $user->email = $email;
+            $user->emailVerified = 0;
+            $user->phone = $phone;
+            $user->phoneVerified = 0;
+            $user->country = null;
+            $user->set("credentials", null);
+            $user->set("params", null);
+            $user->createdOn = time();
+            $user->updatedOn = time();
+
+            $user->query()->insert();
+            $user->id = $db->lastInsertId();
+            $user->set("checksum", $user->checksum()->raw());
+            $user->set("credentials", $user->cipher()->encrypt((new Credentials($user)))->raw());
+            $user->set("params", $user->cipher()->encrypt((new UserParams($user)))->raw());
+
+            $this->adminLogEntry(
+                sprintf('User account %d with username "%s" created', $user->id, $user->username),
+                flags: ["users", "user-account", "user-create", "user:" . $user->id]
+            );
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->status(true);
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
      * @throws \Exception
      */
     public function post(): void
@@ -136,7 +279,7 @@ class User extends AuthAdminAPIController
         if (strtolower($username) !== strtolower($user->username)) {
             // Duplicate check
             try {
-                $dupUsername = Users\Groups::Find()->query('WHERE `username`=?', [$username])->first();
+                $dupUsername = Users::Find()->query('WHERE `username`=?', [$username])->first();
             } catch (ORM_ModelNotFoundException) {
             }
 
@@ -160,7 +303,7 @@ class User extends AuthAdminAPIController
             if ($email) {
                 // Duplicate check
                 try {
-                    $dupEmail = Users\Groups::Find()->query('WHERE `email`=?', [$email])->first();
+                    $dupEmail = Users::Find()->query('WHERE `email`=?', [$email])->first();
                 } catch (ORM_ModelNotFoundException) {
                 }
 
@@ -192,7 +335,7 @@ class User extends AuthAdminAPIController
             if ($phone) {
                 // Duplicate check
                 try {
-                    $dupPhone = Users\Groups::Find()->query('WHERE `phone`=?', [$phone])->first();
+                    $dupPhone = Users::Find()->query('WHERE `phone`=?', [$phone])->first();
                 } catch (ORM_ModelNotFoundException) {
                 }
 
@@ -273,7 +416,7 @@ class User extends AuthAdminAPIController
             }
 
             foreach ($adminLogs as $adminLog) {
-                $this->adminLogEntry($adminLog, flags: ["users", "user-account", "user:" . $user->id]);
+                $this->adminLogEntry($adminLog, flags: ["users", "user-account", "user-edit", "user:" . $user->id]);
             }
 
             $db->commit();
