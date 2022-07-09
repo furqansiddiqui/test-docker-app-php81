@@ -56,7 +56,7 @@ class Users extends AbstractAppTable
         $cols->int("updated_on")->bytes(4)->unSigned();
         $cols->primaryKey("id");
 
-        $constraints->foreignKey("referrer")->table(static::TABLE, "id");
+        $constraints->foreignKey("referrer_id")->table(static::TABLE, "id");
         $constraints->foreignKey("group_id")->table(Groups::TABLE, "id");
         $constraints->foreignKey("country")->table(Countries::TABLE, "code");
     }
