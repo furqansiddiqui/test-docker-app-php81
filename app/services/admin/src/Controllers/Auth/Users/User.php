@@ -672,6 +672,8 @@ class User extends AuthAdminAPIController
         // Verify TOTP
         $this->totpVerify($this->input()->getASCII("totp"));
 
+        $successLog = sprintf('User "%s" 2FA disabled', $user->username);
+
         $db = $this->aK->db->primary();
         $db->beginTransaction();
 
@@ -680,10 +682,7 @@ class User extends AuthAdminAPIController
             $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
             $user->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('User "%s" 2FA disabled', $user->username),
-                flags: ["users", "user-account", "user:" . $user->id]
-            );
+            $this->adminLogEntry($successLog, flags: ["users", "user-account", "user:" . $user->id]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -693,6 +692,7 @@ class User extends AuthAdminAPIController
 
         $this->afterUserIsUpdated($user);
         $this->status(true);
+        $this->response->set("success", $successLog);
     }
 
     /**
@@ -711,6 +711,8 @@ class User extends AuthAdminAPIController
         // Verify TOTP
         $this->totpVerify($this->input()->getASCII("totp"));
 
+        $successLog = sprintf('User "%s" checksum recomputed', $user->username);
+
         $db = $this->aK->db->primary();
         $db->beginTransaction();
 
@@ -719,10 +721,7 @@ class User extends AuthAdminAPIController
             $user->set("checksum", $user->checksum()->raw());
             $user->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('User "%s" checksum recomputed', $user->username),
-                flags: ["users", "user-account", "user:" . $user->id]
-            );
+            $this->adminLogEntry($successLog, flags: ["users", "user-account", "user:" . $user->id]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -732,6 +731,7 @@ class User extends AuthAdminAPIController
 
         $this->afterUserIsUpdated($user);
         $this->status(true);
+        $this->response->set("success", $successLog);
     }
 
     /**
@@ -757,6 +757,8 @@ class User extends AuthAdminAPIController
         // Verify TOTP
         $this->totpVerify($this->input()->getASCII("totp"));
 
+        $successLog = sprintf('User "%s" credentials rebuilt', $user->username);
+
         $db = $this->aK->db->primary();
         $db->beginTransaction();
 
@@ -766,10 +768,7 @@ class User extends AuthAdminAPIController
             $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
             $user->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('User "%s" credentials rebuilt', $user->username),
-                flags: ["users", "user-account", "user:" . $user->id]
-            );
+            $this->adminLogEntry($successLog, flags: ["users", "user-account", "user:" . $user->id]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -779,6 +778,7 @@ class User extends AuthAdminAPIController
 
         $this->afterUserIsUpdated($user);
         $this->status(true);
+        $this->response->set("success", $successLog);
     }
 
     /**
@@ -804,6 +804,8 @@ class User extends AuthAdminAPIController
         // Verify TOTP
         $this->totpVerify($this->input()->getASCII("totp"));
 
+        $successLog = sprintf('User "%s" encrypted params rebuilt', $user->username);
+
         $db = $this->aK->db->primary();
         $db->beginTransaction();
 
@@ -813,10 +815,7 @@ class User extends AuthAdminAPIController
             $user->set("params", $user->cipher()->encrypt($params)->raw());
             $user->query()->update();
 
-            $this->adminLogEntry(
-                sprintf('User "%s" encrypted params rebuilt', $user->username),
-                flags: ["users", "user-account", "user:" . $user->id]
-            );
+            $this->adminLogEntry($successLog, flags: ["users", "user-account", "user:" . $user->id]);
 
             $db->commit();
         } catch (\Exception $e) {
@@ -826,6 +825,7 @@ class User extends AuthAdminAPIController
 
         $this->afterUserIsUpdated($user);
         $this->status(true);
+        $this->response->set("success", $successLog);
     }
 
     /**
