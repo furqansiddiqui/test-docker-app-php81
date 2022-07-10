@@ -667,6 +667,10 @@ class User extends AuthAdminAPIController
         $user = $this->fetchUserObject(true);
 
         $credentials = $user->credentials();
+        if (!$credentials->getGoogleAuthSeed()) {
+            throw AdminAPIException::Param("action", "Google Auth is already disabled for this account");
+        }
+
         $credentials->changeGoogleAuthSeed(null);
 
         // Verify TOTP
