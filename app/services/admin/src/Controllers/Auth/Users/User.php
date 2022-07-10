@@ -709,7 +709,7 @@ class User extends AuthAdminAPIController
     {
         $user = $this->fetchUserObject(false);
         if ($user->isChecksumValidated()) {
-            throw new AdminAPIException('Checksum for this user is already OK');
+            throw AdminAPIException::Param("action", "Checksum for this user is already OK");
         }
 
         // Verify TOTP
@@ -755,7 +755,7 @@ class User extends AuthAdminAPIController
         }
 
         if (isset($credentials)) {
-            throw new AdminAPIException('User credentials object already OK');
+            throw AdminAPIException::Param("action", "User credentials object already OK");
         }
 
         // Verify TOTP
@@ -802,7 +802,7 @@ class User extends AuthAdminAPIController
         }
 
         if (isset($params)) {
-            throw new AdminAPIException('User encrypted params object already OK');
+            throw AdminAPIException::Param("action", "User encrypted params object already OK");
         }
 
         // Verify TOTP
