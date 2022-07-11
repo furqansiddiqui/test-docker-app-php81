@@ -135,11 +135,11 @@ class Profiles extends AuthAdminAPIController
         $changes = 0;
 
         // First and last name
-        if ($this->inputSetProfileVar($profile, "first_name", 3, 64, "First name")) {
+        if ($this->inputSetProfileVar($profile, "firstName", 3, 64, "First name")) {
             $changes++;
         }
 
-        if ($this->inputSetProfileVar($profile, "last_name", 3, 64, "Last name")) {
+        if ($this->inputSetProfileVar($profile, "lastName", 3, 64, "Last name")) {
             $changes++;
         }
 
