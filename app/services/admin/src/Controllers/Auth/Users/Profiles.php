@@ -135,11 +135,11 @@ class Profiles extends AuthAdminAPIController
         $changes = 0;
 
         // First and last name
-        if ($this->inputSetProfileVar($profile, "first_name", 3, 64, "First name")) {
+        if ($this->inputSetProfileVar($profile, "firstName", 3, 64, "First name")) {
             $changes++;
         }
 
-        if ($this->inputSetProfileVar($profile, "last_name", 3, 64, "Last name")) {
+        if ($this->inputSetProfileVar($profile, "lastName", 3, 64, "Last name")) {
             $changes++;
         }
 
@@ -236,7 +236,7 @@ class Profiles extends AuthAdminAPIController
         }
 
         $this->status(true);
-        $this->response->set("profile", $profile);
+        $this->response->set("profile", $this->getProfileObject($profile));
     }
 
     /**
@@ -314,16 +314,16 @@ class Profiles extends AuthAdminAPIController
     }
 
     /**
-     * @return void
-     * @throws AdminAPIException
+     * @param Profile $profile
+     * @return Profile
      */
-    public function get(): void
+    private function getProfileObject(Profile $profile): Profile
     {
-        $profile = $this->fetchUserProfile();
-
-        try {
-            $profile->validateChecksum();
-        } catch (AppException) {
+        if ($profile->isRegistered) {
+            try {
+                $profile->validateChecksum();
+            } catch (AppException) {
+            }
         }
 
         $profile->dobTs = $profile->dob();
@@ -335,7 +335,16 @@ class Profiles extends AuthAdminAPIController
             ];
         }
 
+        return $profile;
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     */
+    public function get(): void
+    {
         $this->status(true);
-        $this->response->set("profile", $profile);
+        $this->response->set("profile", $this->getProfileObject($this->fetchUserProfile()));
     }
 }
