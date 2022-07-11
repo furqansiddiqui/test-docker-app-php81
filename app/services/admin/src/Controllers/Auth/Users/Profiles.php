@@ -172,7 +172,7 @@ class Profiles extends AuthAdminAPIController
         if ($dob) {
             $dobTs = strtotime($dob);
             if (!$dobTs) {
-                throw AdminAPIException::Param("gender", "Invalid date of birth format");
+                throw AdminAPIException::Param("dob", "Invalid date of birth format");
             }
 
             if ($profile->setDob((int)date("j", $dobTs), (int)date("n", $dobTs), (int)date("Y", $dobTs))) {
