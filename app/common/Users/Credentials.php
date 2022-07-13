@@ -14,9 +14,9 @@ class Credentials
     /** @var int */
     public readonly int $userId;
     /** @var string|null */
-    private ?string $password;
+    private ?string $password = null;
     /** @var string|null */
-    private ?string $googleAuthSeed;
+    private ?string $googleAuthSeed = null;
 
     /**
      * @param User $user
@@ -41,7 +41,7 @@ class Credentials
      */
     public function verifyPassword(string $input): bool
     {
-        if (!$this->password) {
+        if (!isset($this->password)) {
             return false;
         }
 
