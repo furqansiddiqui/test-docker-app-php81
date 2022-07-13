@@ -474,18 +474,25 @@ class User extends AuthAdminAPIController
                     throw new AdminAPIException('No such referrer account exists');
                 }
 
+                if ($user->referrerId === $referrer->id) {
+                    throw new AdminAPIException('There are no changes to be saved');
+                }
+
                 if ($referrer->id === $user->id) {
                     throw new AdminAPIException('Cannot be own referrer');
                 }
+
+                $user->referrerId = $referrer->id;
             } catch (AdminAPIException $e) {
                 $e->setParam("referrer");
                 throw $e;
             }
-        }
+        } else {
+            if (!$user->referrerId) {
+                throw AdminAPIException::Param("referrer", "There are no changes to be saved");
+            }
 
-        $referrerId = isset($referrer) ? $referrer->id : null;
-        if ($user->referrerId === $referrerId) {
-            throw new AdminAPIException('There are no changes to be saved!');
+            $user->referrerId = null;
         }
 
         // Verify TOTP
@@ -495,7 +502,6 @@ class User extends AuthAdminAPIController
         $db->beginTransaction();
 
         try {
-            $user->referrerId = $referrerId;
             $user->updatedOn = time();
             $user->set("checksum", $user->checksum()->raw());
             $user->query()->update();
