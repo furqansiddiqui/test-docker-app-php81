@@ -647,6 +647,7 @@ class User extends AuthAdminAPIController
         try {
             $credentials->changePassword($tempPassword);
             $user->updatedOn = time();
+            $user->set("checksum", $user->checksum()->raw()); // Because of possible flags append
             $user->set("credentials", $user->cipher()->encrypt($credentials)->raw());
             $user->query()->update();
 
