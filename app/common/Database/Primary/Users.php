@@ -146,7 +146,7 @@ class Users extends AbstractAppTable
         }
 
         $username = $userRow["username"];
-        if (!Validator::isValidUsername($userRow)) {
+        if (!Validator::isValidUsername($username)) {
             throw new AppException(sprintf('User account %d has invalid username', $userId));
         }
 
