@@ -511,6 +511,7 @@ class User extends AuthAdminAPIController
                 flags: ["users", "user-account", "user:" . $user->id]
             );
 
+            $db->commit();
         } catch (\Exception $e) {
             $db->error();
             throw $e;
