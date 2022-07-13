@@ -83,16 +83,16 @@ class User extends AbstractAppModel
     /**
      * @return void
      */
-    public function onUnserialize()
+    public function onUnserialize(): void
     {
-        $this->_tags = explode(",", $this->private("tags") ?? "");
+        $this->_tags = explode(",", trim(trim($this->private("tags") ?? ""), ","));
         parent::onUnserialize();
     }
 
     /**
      * @return void
      */
-    public function onSerialize()
+    public function onSerialize(): void
     {
         $this->_cipher = null;
         $this->_checksumValidated = false;
