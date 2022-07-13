@@ -630,6 +630,8 @@ class User extends AuthAdminAPIController
                 if (!in_array($addFlag, [UserTagsInterface::SUGGEST_PASSWORD_CHANGE, UserTagsInterface::FORCE_PASSWORD_CHANGE])) {
                     throw new AdminAPIException('Cannot add irrelevant flag with password change');
                 }
+
+                $user->appendTag($addFlag);
             }
         } catch (AdminAPIException $e) {
             $e->setParam("flag");
