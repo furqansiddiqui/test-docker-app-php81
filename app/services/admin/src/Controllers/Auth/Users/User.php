@@ -35,6 +35,7 @@ class User extends AuthAdminAPIController
         $db = $this->aK->db->primary();
         Schema::Bind($db, 'App\Common\Database\Primary\Users\Groups');
         Schema::Bind($db, 'App\Common\Database\Primary\Users');
+        Schema::Bind($db, 'App\Common\Database\Primary\Countries');
 
         $privileges = $this->admin->privileges();
         if (!$privileges->isRoot() && !$privileges->manageUsers) {
