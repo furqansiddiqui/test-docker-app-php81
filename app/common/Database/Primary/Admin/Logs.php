@@ -62,7 +62,7 @@ class Logs extends AbstractAppTable
         array         $flags = []
     ): Log
     {
-        if (!preg_match('/^\w+[\w\s@\-:=.#\",()\[\];]+$/', $message)) {
+        if (!preg_match('/^\w+[\w\s@\-:=+.#\",()\[\];]+$/', $message)) {
             throw new AppException('Admin log contains an illegal character');
         } elseif (strlen($message) > 255) {
             throw new AppException('Admin log cannot exceed 255 bytes');
@@ -74,7 +74,7 @@ class Logs extends AbstractAppTable
             $flagIndex = -1;
             foreach ($flags as $flag) {
                 $flagIndex++;
-                if (!preg_match('/^[\w.\-]{1,16}(:[0-9]{1,10})?$/', $flag)) {
+                if (!preg_match('/^[\w.\-]{1,16}(:\d{1,10})?$/', $flag)) {
                     throw new AppException(sprintf('Invalid admin log flag at index %d', $flagIndex));
                 }
 
