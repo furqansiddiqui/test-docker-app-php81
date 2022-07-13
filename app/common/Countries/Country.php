@@ -13,7 +13,7 @@ use App\Common\Database\Primary\Countries;
 class Country extends AbstractAppModel
 {
     public const TABLE = Countries::TABLE;
-    public const SERIALIZABLE = false;
+    public const SERIALIZABLE = true;
 
     /** @var int */
     public int $available = 0;
