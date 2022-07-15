@@ -119,7 +119,7 @@ class User extends AbstractAppModel
      */
     public function checksum(): Buffer
     {
-        $this->updateUserTags(); // Update tags associated with user account
+        $this->updateUserTagsInternal(); // Update tags associated with user account
         $raw = sprintf(
             "%d:%d:%d:%s:%d:%s:%s:%s:%d:%s:%d:%s:%d",
             $this->id,
@@ -175,6 +175,14 @@ class User extends AbstractAppModel
     }
 
     /**
+     * @return void
+     */
+    public function clearTags(): void
+    {
+        $this->_tags = [];
+    }
+
+    /**
      * @param string $tag
      * @return bool
      */
@@ -192,7 +200,7 @@ class User extends AbstractAppModel
         $index = array_search(strtolower(trim($tag)), $this->_tags);
         if (is_int($index) && $index >= 0) {
             unset($this->_tags[$index]);
-            $this->updateUserTags();
+            $this->updateUserTagsInternal();
             return true;
         }
 
@@ -201,14 +209,18 @@ class User extends AbstractAppModel
 
     /**
      * @param string $tag
+     * @param bool $updateInternalVar
      * @return bool
      */
-    public function appendTag(string $tag): bool
+    public function appendTag(string $tag, bool $updateInternalVar = true): bool
     {
         $tag = strtoupper(trim($tag));
         if (!$this->hasTag($tag)) {
             $this->_tags[] = $tag;
-            $this->updateUserTags();
+            if ($updateInternalVar) {
+                $this->updateUserTagsInternal();
+            }
+
             return true;
         }
 
@@ -218,7 +230,7 @@ class User extends AbstractAppModel
     /**
      * @return void
      */
-    private function updateUserTags(): void
+    public function updateUserTagsInternal(): void
     {
         $tagsStr = implode(",", array_unique($this->_tags));
         if (strlen($tagsStr) > 512) {

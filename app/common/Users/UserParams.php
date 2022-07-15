@@ -23,13 +23,17 @@ class UserParams
     }
 
     /**
-     * @param string $data
-     * @return $this
+     * @param string|null $data
+     * @return bool
      */
-    public function setSecureData(string $data): static
+    public function setSecureData(?string $data = null): bool
     {
+        if ($data === $this->secureData) {
+            return false;
+        }
+
         $this->secureData = $data;
-        return $this;
+        return true;
     }
 
     /**

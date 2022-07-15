@@ -237,9 +237,141 @@ class User extends AuthAdminAPIController
             case "verifications":
                 $this->updateVerifications();
                 return;
+            case "flags":
+            case "tags":
+                $this->updateTags();
+                return;
+            case "params":
+                $this->updateParams();
+                return;
             default:
                 throw AdminAPIException::Param("action", "Invalid action called for user account");
         }
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    private function updateTags(): void
+    {
+        $user = $this->fetchUserObject(true);
+        $currentTagsStr = $user->private("tags") ?? "";
+        $tags = explode(",", strtolower(trim($this->input()->getASCII("tags"))));
+        $user->clearTags();
+
+        if ($tags) {
+            $count = 0;
+            foreach ($tags as $tag) {
+                if (!$tag) {
+                    continue;
+                }
+
+                if (!preg_match('/^\w{4,32}$/', $tag)) {
+                    throw new AdminAPIException('Invalid user tag');
+                }
+
+                $user->appendTag($tag, false);
+                $count++;
+            }
+
+            if ($count) {
+                $user->updateUserTagsInternal();
+            }
+        }
+
+        if ($currentTagsStr === $user->private("tags")) {
+            throw new AdminAPIException('There are no changes to be saved');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->updatedOn = time();
+            $user->set("checksum", $user->checksum()->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" internal flags updated', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+
+        $this->status(true);
+        $this->response->set("tags", $user->tags());
+    }
+
+    /**
+     * @return void
+     * @throws AdminAPIException
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Security\Exception\CipherException
+     */
+    private function updateParams(): void
+    {
+        $changes = 0;
+        $user = $this->fetchUserObject(true);
+        $userParams = $user->params();
+
+        // Secure data
+        // This is an example/dummy field
+        $secureData = $this->input()->getASCII("secureData");
+        if ($secureData) {
+            $secureDataLen = strlen($secureData);
+            if ($secureDataLen < 3 || $secureDataLen > 128) {
+                throw AdminAPIException::Param("secureData", "Invalid secure data");
+            }
+
+            $changes += (int)$userParams->setSecureData($secureData);
+        } else {
+            $changes += (int)$userParams->setSecureData(null);
+        }
+
+        // Changes?
+        if (!$changes) {
+            throw new AdminAPIException('There are no changes to saved!');
+        }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
+        $db = $this->aK->db->primary();
+        $db->beginTransaction();
+
+        try {
+            $user->updatedOn = time();
+            $user->set("params", $user->cipher()->encrypt($userParams)->raw());
+            $user->query()->update();
+
+            $this->adminLogEntry(
+                sprintf('User "%s" encrypted params updated', $user->username),
+                flags: ["users", "user-account", "user:" . $user->id]
+            );
+
+            $db->commit();
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+
+        $this->afterUserIsUpdated($user);
+
+        $this->status(true);
+        $this->response->set("tags", $user->tags());
     }
 
     /**
@@ -933,10 +1065,16 @@ class User extends AuthAdminAPIController
         $errors = [];
 
         // Params
+        $userParams = [];
+
         try {
             $params = $user->params();
         } catch (AppException $e) {
             $errors[] = $e->getMessage();
+        }
+
+        if (isset($params)) {
+            $userParams["secureData"] = $params->getSecureData();
         }
 
         // Referrer
@@ -958,7 +1096,7 @@ class User extends AuthAdminAPIController
         $this->status(true);
         $this->response->set("user", $user);
         $this->response->set("tags", $user->tags());
-        $this->response->set("params", $params ?? null);
+        $this->response->set("params", $userParams ?? []);
         $this->response->set("errors", $errors);
         $this->response->set("knownUsersFlags", UserTagsInterface::KNOWN_FLAGS);
     }
