@@ -276,12 +276,9 @@ class User extends AuthAdminAPIController
                 $user->appendTag($tag, false);
                 $count++;
             }
-
-            if ($count) {
-                $user->updateUserTagsInternal();
-            }
         }
 
+        $user->updateUserTagsInternal();
         if ($currentTagsStr === $user->private("tags")) {
             throw new AdminAPIException('There are no changes to be saved');
         }
