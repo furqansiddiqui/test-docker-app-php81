@@ -366,9 +366,7 @@ class User extends AuthAdminAPIController
         }
 
         $this->afterUserIsUpdated($user);
-
         $this->status(true);
-        $this->response->set("tags", $user->tags());
     }
 
     /**
