@@ -43,4 +43,14 @@ class UserParams
     {
         return $this->secureData;
     }
+
+    /**
+     * @return null[]|string[]
+     */
+    public function getPublicArray(): array
+    {
+        return [
+            "secureData" => $this->getSecureData()
+        ];
+    }
 }

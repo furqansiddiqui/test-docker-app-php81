@@ -1065,8 +1065,6 @@ class User extends AuthAdminAPIController
         $errors = [];
 
         // Params
-        $userParams = [];
-
         try {
             $params = $user->params();
         } catch (AppException $e) {
@@ -1074,7 +1072,7 @@ class User extends AuthAdminAPIController
         }
 
         if (isset($params)) {
-            $userParams["secureData"] = $params->getSecureData();
+            $userParams = $params->getPublicArray();
         }
 
         // Referrer
