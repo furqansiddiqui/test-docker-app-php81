@@ -76,7 +76,7 @@ services.
 │   ├── engine.sh            # Run a script defined in "engine" service
 │   ├── phpmyadmin.sh        # Start/stop PhpMyAdmin service
 │   ├── restart.sh           # Restart all or one of the service/container
-│   ├── docker.sh            # Execute any docker-compose command
+│   ├── docker.sh            # Execute any docker compose command
 │   └── *.sh
 ```
 
