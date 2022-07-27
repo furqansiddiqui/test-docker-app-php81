@@ -63,6 +63,8 @@ class User extends AbstractAppModel
     private ?Credentials $_credentials = null;
     /** @var UserParams|null */
     private ?UserParams $_params = null;
+    /** @var UserBaggage|null */
+    private ?UserBaggage $_baggage = null;
 
     /**
      * @return void
@@ -99,6 +101,7 @@ class User extends AbstractAppModel
         $this->_credentials = null;
         $this->_params = null;
         $this->_tags = [];
+        $this->_baggage = null;
         parent::onSerialize();
     }
 
@@ -316,6 +319,19 @@ class User extends AbstractAppModel
 
         $this->_params = $params;
         return $this->_params;
+    }
+
+    /**
+     * @return UserBaggage
+     */
+    public function baggage(): UserBaggage
+    {
+        if ($this->_baggage) {
+            return $this->_baggage;
+        }
+
+        $this->_baggage = new UserBaggage($this);
+        return $this->_baggage;
     }
 
     /**
