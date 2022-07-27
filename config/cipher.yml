@@ -4,12 +4,12 @@
 # Do NOT change these keys at ANY POINT AFTER INITIALISATION OF PROJECT! DO NOT!
 
 # Primary Cipher Key
-primary: "PRIMARY enter some random words or PRNG entropy here"
+primary: "PRIMARY enter some random words or PRNG entropy here1"
 # Secondary Key
-secondary: "SEC enter some random words or PRNG entropy here"
+secondary: "SEC enter some random words or PRNG entropy here2"
 # Users models encryption
-users: "OOSERS enter some random words or PRNG entropy here"
+users: "OOSERS enter some random words or PRNG entropy here3"
 # Project models encryption
-project: "PRAJACKET enter some random words or PRNG entropy here"
+project: "PRAJACKET enter some random words or PRNG entropy here4"
 # Misc encryption
-misc: "MISCELANIEOUS enter some random words or PRNG entropy here"
+misc: "MISCELANIEOUS enter some random words or PRNG entropy here5"

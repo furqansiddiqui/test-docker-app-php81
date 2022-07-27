@@ -3,11 +3,11 @@ title: "Website Title"
 # Domain name; Configure primary domain of your program below (frontend side)
 # Do not include "http://" or "https://"; Do not include forward slahes "/"
 # This value may include "www." prefix to your domain (optional)
-domain: "domain.com"
+domain: "comely.io"
 # SSL/TLS Encryption on project
 # SSL encryption is required for project to work securely;
 # This value should always be "true" unless you are doing something wrong
 secure: true
 # Public email address for your project
 # This email address should correspond to your domain name
-email: "admin@domain.com"
+email: "admin@comely.io"
