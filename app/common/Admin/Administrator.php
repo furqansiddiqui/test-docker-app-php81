@@ -47,7 +47,6 @@ class Administrator extends AbstractAppModel
     {
         try {
             $raw = sprintf("%d:%d:%s:%s", $this->id, $this->status, trim($this->email), trim($this->phone ?? ""));
-            var_dump($raw);
             return $this->cipher()->pbkdf2("sha1", $raw, 1000 + $this->id);
         } catch (CipherException $e) {
             $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
@@ -61,7 +60,6 @@ class Administrator extends AbstractAppModel
      */
     public function validateChecksum(): void
     {
-        var_dump($this->checksum()->raw(), bin2hex($this->private("checksum")));
         if ($this->checksum()->raw() !== $this->private("checksum")) {
             throw new AppException(sprintf('Administration %d checksum validation failed', $this->id));
         }
