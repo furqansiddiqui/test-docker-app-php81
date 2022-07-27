@@ -61,8 +61,8 @@ if [[ ! -f "$DOCKER_COMPOSE_FILE" ]]; then
   exit
 fi
 
-docker-compose -f docker-compose.yml -f ${DOCKER_COMPOSE_FILE} build --build-arg HOST_UID=${HOST_UID} --build-arg HOST_GID=${HOST_GID}
-docker-compose -f docker-compose.yml -f ${DOCKER_COMPOSE_FILE} up -d
+docker compose -f docker-compose.yml -f ${DOCKER_COMPOSE_FILE} build --build-arg HOST_UID=${HOST_UID} --build-arg HOST_GID=${HOST_GID}
+docker compose -f docker-compose.yml -f ${DOCKER_COMPOSE_FILE} up -d
 
 cd ../
 echo -e '#!/bin/bash
@@ -70,7 +70,7 @@ SCRIPT=`realpath $0`
 SCRIPT_PATH=`dirname $SCRIPT`
 cd $SCRIPT_PATH/docker
 EXEC_CMD="/home/comely-io/engine/src/console $@"
-docker-compose exec -T engine /bin/su comely-io -c "/bin/bash $EXEC_CMD"
+docker compose exec -T engine /bin/su comely-io -c "/bin/bash $EXEC_CMD"
 cd ../' > engine.sh
 
 chmod +x engine.sh
