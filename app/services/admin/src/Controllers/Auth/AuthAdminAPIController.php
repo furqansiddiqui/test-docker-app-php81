@@ -109,7 +109,7 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
         // Timestamp
         $requestTs = $this->input()->getInt("timeStamp");
         $requestTsAge = time() - $requestTs;
-        if ($requestTsAge >= 2) {
+        if ($requestTsAge >= 4) {
             throw new AdminAPIException(sprintf('The request query has expired, -%d seconds', $requestTsAge));
         }
     }
