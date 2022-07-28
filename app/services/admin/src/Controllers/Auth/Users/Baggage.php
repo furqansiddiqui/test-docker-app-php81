@@ -44,6 +44,9 @@ class Baggage extends AuthAdminAPIController
             throw AdminAPIException::Param("key", "Invalid baggage item key");
         }
 
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
+
         $existed = $this->uB->delete($key);
 
         $this->status(true);
@@ -85,6 +88,9 @@ class Baggage extends AuthAdminAPIController
             $e->setParam("value");
             throw $e;
         }
+
+        // Verify TOTP
+        $this->totpVerify($this->input()->getASCII("totp"));
 
         $this->uB->set($key, $value);
         $this->status(true);
