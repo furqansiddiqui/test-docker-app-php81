@@ -45,7 +45,7 @@ class Baggage extends AuthAdminAPIController
         }
 
         // Verify TOTP
-        $this->totpVerify($this->input()->getASCII("totp"));
+        $this->totpVerify($this->input()->getASCII("totp"), allowReuse: true);
 
         $existed = $this->uB->delete($key);
 
@@ -90,7 +90,7 @@ class Baggage extends AuthAdminAPIController
         }
 
         // Verify TOTP
-        $this->totpVerify($this->input()->getASCII("totp"));
+        $this->totpVerify($this->input()->getASCII("totp"), allowReuse: true);
 
         $this->uB->set($key, $value);
         $this->status(true);

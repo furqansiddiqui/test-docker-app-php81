@@ -154,6 +154,13 @@ class UserBaggage
             ]
         );
 
+        // Remove from cache as well
+        try {
+            $this->aK->cache->delete(sprintf("ub%d_%s", $this->userId, $key));
+        } catch (CacheException $e) {
+            $this->aK->errors->triggerIfDebug($e, E_USER_WARNING);
+        }
+
         return $query->rows();
     }
 
