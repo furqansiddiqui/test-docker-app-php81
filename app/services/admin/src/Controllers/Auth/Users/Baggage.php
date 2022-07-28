@@ -111,7 +111,7 @@ class Baggage extends AuthAdminAPIController
             $this->response->set("item", [
                 "user" => $this->uB->userId,
                 "key" => $key,
-                "value" => $value
+                "data" => $value
             ]);
 
             return;
