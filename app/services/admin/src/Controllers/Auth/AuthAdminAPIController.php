@@ -186,23 +186,26 @@ abstract class AuthAdminAPIController extends AbstractAdminAPIController
     /**
      * @param mixed $code
      * @param string|null $param
+     * @param bool $allowReuse
      * @return void
      * @throws AdminAPIException
      * @throws AppException
      */
-    protected function totpVerify(mixed $code, ?string $param = "totp"): void
+    protected function totpVerify(mixed $code, ?string $param = "totp", bool $allowReuse = false): void
     {
         if (is_int($code)) {
             $code = strval($code);
         }
 
         try {
-            if (!is_string($code) || !preg_match('/^[0-9]{6}$/', $code)) {
+            if (!is_string($code) || !preg_match('/^\d{6}$/', $code)) {
                 throw new AdminAPIException('Invalid TOTP code');
             }
 
-            if ($code === $this->session->last2faCode) {
-                throw new AdminAPIException('This TOTP code has already been consumed');
+            if (!$allowReuse) {
+                if ($code === $this->session->last2faCode) {
+                    throw new AdminAPIException('This TOTP code has already been consumed');
+                }
             }
 
             if (!$this->admin->credentials()->verifyTotp($code)) {
