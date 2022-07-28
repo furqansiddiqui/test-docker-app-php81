@@ -111,6 +111,7 @@ class Baggage extends AuthAdminAPIController
             $this->response->set("item", [
                 "user" => $this->uB->userId,
                 "key" => $key,
+                "length" => strlen($value),
                 "data" => $value
             ]);
 
@@ -118,6 +119,9 @@ class Baggage extends AuthAdminAPIController
         }
 
         $list = $this->uB->list();
+        for ($i = 0; $i < count($list); $i++) {
+            $list[$i]["length"] = strlen($list[$i]["data"]);
+        }
 
         $this->status(true);
         $this->response->set("items", $list);
