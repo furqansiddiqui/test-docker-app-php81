@@ -30,7 +30,7 @@ class Databases
     /**
      * @param AppKernel $aK
      */
-    public function __construct(private AppKernel $aK)
+    public function __construct(private readonly AppKernel $aK)
     {
     }
 
