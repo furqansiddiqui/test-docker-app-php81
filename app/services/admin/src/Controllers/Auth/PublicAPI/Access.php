@@ -7,6 +7,7 @@ use App\Common\DataStore\PublicAPIAccess;
 use App\Common\Validator;
 use App\Services\Admin\Controllers\Auth\AuthAdminAPIController;
 use App\Services\Admin\Exception\AdminAPIException;
+use Comely\Cache\Exception\CacheException;
 
 /**
  * Class Access
@@ -19,11 +20,15 @@ class Access extends AuthAdminAPIController
 
     /**
      * @return void
-     * @throws \App\Common\Exception\AppException
      */
     protected function authCallback(): void
     {
-        $this->pIA = PublicAPIAccess::getInstance(true);
+        try {
+            $this->pIA = PublicAPIAccess::getInstance(true);
+        } catch (\Exception $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
+            $this->pIA = new PublicAPIAccess();
+        }
     }
 
     /**
@@ -71,6 +76,13 @@ class Access extends AuthAdminAPIController
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
+        }
+
+        // Clear Cached
+        try {
+            PublicAPIAccess::ClearCached();
+        } catch (CacheException $e) {
+            $this->aK->errors->trigger($e, E_USER_WARNING);
         }
 
         $this->status(true);

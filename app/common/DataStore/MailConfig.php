@@ -28,10 +28,16 @@ class MailConfig extends AbstractDataStoreObject
     public ?string $hostname = null;
     /** @var int */
     public int $port = 587;
-    /** @var null|string SMTP username or vendor's baggage data 1 */
+    /** @var null|string */
     public ?string $username = null;
-    /** @var null|string SMTP password or vendor's API key */
+    /** @var null|string */
     public ?string $password = null;
-    /** @var null|string SMTP server name or vendor's baggage data 2 */
+    /** @var null|string */
     public ?string $serverName = null;
+    /** @var null|string */
+    public ?string $apiKey = null;
+    /** @var null|string */
+    public ?string $apiBaggageOne = null;
+    /** @var null|string */
+    public ?string $apiBaggageTwo = null;
 }

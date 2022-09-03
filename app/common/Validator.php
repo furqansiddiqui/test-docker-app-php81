@@ -174,7 +174,7 @@ class Validator
         }
 
         $hostname = strtolower($hostname);
-        if (preg_match('/^[a-z0-9\-]+(\.[a-z0-9\-]+)*$/', $hostname)) {
+        if (preg_match('/^[a-z\d\-]+(\.[a-z\d\-]+)*$/', $hostname)) {
             return true; // Validated as Domain
         }
 

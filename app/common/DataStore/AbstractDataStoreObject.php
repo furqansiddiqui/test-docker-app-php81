@@ -30,6 +30,17 @@ abstract class AbstractDataStoreObject
     public const IS_ENCRYPTED = false;
 
     /**
+     * @return void
+     * @throws \Comely\Cache\Exception\CacheException
+     */
+    public static function ClearCached(): void
+    {
+        if (static::CACHE_KEY) {
+            AppKernel::getInstance()->cache->delete(static::CACHE_KEY);
+        }
+    }
+
+    /**
      * @param bool $useCache
      * @return static
      * @throws AppException
