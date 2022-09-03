@@ -131,7 +131,6 @@ abstract class AbstractAdminAPIController extends AbstractAppController
      * @return void
      * @throws AdminAPIException
      * @throws \App\Common\Exception\AppException
-     * @throws \Comely\Database\Exception\ORM_ModelQueryException
      */
     final protected function onLoad(): void
     {
@@ -162,7 +161,6 @@ abstract class AbstractAdminAPIController extends AbstractAppController
      * @return void
      * @throws AdminAPIException
      * @throws \App\Common\Exception\AppException
-     * @throws \Comely\Database\Exception\ORM_ModelQueryException
      */
     private function initSession(): void
     {
@@ -172,7 +170,7 @@ abstract class AbstractAdminAPIController extends AbstractAppController
             return;
         }
 
-        if (!preg_match('/^[a-f0-9]{64}$/i', $sessionToken)) {
+        if (!preg_match('/^[a-f\d]{64}$/i', $sessionToken)) {
             throw new AdminAPIException('SESSION_TOKEN_INVALID');
         }
 

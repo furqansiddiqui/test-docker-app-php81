@@ -107,7 +107,7 @@ class Profile extends AbstractAppModel
             $this->set("dob", null); // replace empty string "" with a NULL
         }
 
-        if ($dob && !preg_match('/^[0-9]{8}$/', $dob)) {
+        if ($dob && !preg_match('/^\d{8}$/', $dob)) {
             throw new AppException(sprintf('Invalid user profile %d DOB', $this->userId));
         }
     }

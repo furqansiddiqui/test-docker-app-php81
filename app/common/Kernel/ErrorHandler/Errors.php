@@ -44,7 +44,7 @@ class Errors
     /**
      * @param AppKernel $aK
      */
-    final public function __construct(private AppKernel $aK)
+    final public function __construct(private readonly AppKernel $aK)
     {
         $this->triggered = new ErrorLog();
         $this->logged = new ErrorLog();

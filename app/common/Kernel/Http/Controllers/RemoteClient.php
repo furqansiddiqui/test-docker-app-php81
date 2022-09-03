@@ -35,7 +35,7 @@ class RemoteClient
             $userIpAddr = $req->headers->get("cf-connecting-ip");
         } elseif ($req->headers->has("x-forwarded-for")) {
             $xff = explode(",", $req->headers->get("x-forwarded-for"));
-            $userIpAddr = trim(preg_replace('/[^a-f0-9.:]/', '', strtolower($xff[0])));
+            $userIpAddr = trim(preg_replace('/[^a-f\d.:]/', '', strtolower($xff[0])));
         }
 
         $this->ipAddress = $userIpAddr ?? $this->realIpAddress;

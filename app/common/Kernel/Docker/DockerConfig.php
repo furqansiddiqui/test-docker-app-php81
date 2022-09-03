@@ -115,13 +115,13 @@ namespace App\Common\Kernel\Docker {
                         if (is_array($nC)) {
                             foreach ($nC as $nCE) {
                                 if (is_string($nCE) && preg_match('/^subnet:/i', $nCE)) {
-                                    $nCsn = preg_replace('/[^0-9.\/]/', '', $nCE);
+                                    $nCsn = preg_replace('/[^\d.\/]/', '', $nCE);
                                     break;
                                 }
                             }
                         }
 
-                        if (!$nCsn || !preg_match('/^[0-9]+(\.[0-9]+){3}\/[0-9]+$/', $nCsn)) {
+                        if (!$nCsn || !preg_match('/^\d+(\.\d+){3}\/\d+$/', $nCsn)) {
                             throw new DockerConfigException('Could not retrieve docker subnet configuration');
                         }
 
@@ -148,25 +148,25 @@ namespace App\Common\Kernel\Docker {
                     // IPv4
                     if ($this->network?->name) {
                         $sCip = $sC["networks"][$this->network->name]["ipv4_address"] ?? null;
-                        if ($sCip && is_string($sCip) && preg_match('/^[0-9]+(\.[0-9]+){3}$/', $sCip)) {
+                        if ($sCip && is_string($sCip) && preg_match('/^\d+(\.\d+){3}$/', $sCip)) {
                             $service->ipAddress = $sCip;
                         }
                     }
 
                     // Ports
                     if (isset($sC["ports"][0]) && is_string($sC["ports"][0]) && $sC["ports"][0]) {
-                        preg_match('/:[0-9]+$/', $sC["ports"][0], $sCPin);
+                        preg_match('/:\d+$/', $sC["ports"][0], $sCPin);
                         if ($sCPin) {
                             $service->internalPort = intval(trim(substr($sCPin[0], 1)));
                             $sCPout = trim(substr($sC["ports"][0], 0, -1 * strlen($sCPin[0])));
                             if ($sCPout) {
-                                if (preg_match('/^[0-9]{2,5}$/i', $sCPout)) {
+                                if (preg_match('/^\d{2,5}$/i', $sCPout)) {
                                     $service->externalPort = intval($sCPout);
-                                } elseif (preg_match('/^[0-9]+(\.[0-9]+){3}:[0-9]{2,5}$/', $sCPout)) {
+                                } elseif (preg_match('/^\d+(\.\d+){3}:\d{2,5}$/', $sCPout)) {
                                     $service->externalPort = $sCPout;
-                                } elseif (preg_match('/^\${\w+(:-[0-9]+)?}$/i', $sCPout)) {
+                                } elseif (preg_match('/^\${\w+(:-\d+)?}$/i', $sCPout)) {
                                     $sCPoutDef = null;
-                                    if (preg_match('/:-[0-9]+}$/', $sCPout)) {
+                                    if (preg_match('/:-\d+}$/', $sCPout)) {
                                         $sCPout = explode(":", substr($sCPout, 2, -1));
                                         $sCPoutVar = OOP::camelCase($sCPout[0]);
                                         $sCPoutDef = intval(substr($sCPout[1], 1));
