@@ -114,12 +114,12 @@ abstract class AbstractDataStoreObject
     /**
      * Use this method to set/change property values, returns TRUE if new value is different from previous one
      * @param string $prop
-     * @param $val
+     * @param mixed $val
      * @param bool $checkUnInitProp
      * @return bool
      * @throws AppException
      */
-    public function setValue(string $prop, $val, bool $checkUnInitProp = false): bool
+    public function setValue(string $prop, mixed $val, bool $checkUnInitProp = false): bool
     {
         if (!property_exists($this, $prop)) {
             throw new AppException(sprintf('Prop "%s" does not exist in class "%s"', $prop, static::class));
