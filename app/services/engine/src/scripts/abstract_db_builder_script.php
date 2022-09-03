@@ -47,6 +47,9 @@ abstract class abstract_db_builder_script extends AbstractCLIScript
         $this->print("{green}OK{/}");
 
         $this->execDbTablesQuery($apiLogs, [
+            'App\Common\Database\PublicAPI\Sessions',
+            'App\Common\Database\PublicAPI\Queries',
+            'App\Common\Database\PublicAPI\QueriesPayload',
         ]);
 
         $this->print("");

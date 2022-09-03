@@ -39,7 +39,7 @@ class CipherKeys
                 throw new AppConfigException(sprintf('Invalid entropy for cipher key "%s"', $label));
             }
 
-            if (!preg_match('/^[a-f0-9]{64}$/i', $entropy)) {
+            if (!preg_match('/^[a-f\d]{64}$/i', $entropy)) {
                 $entropy = hash("sha256", $entropy, true);
             }
 

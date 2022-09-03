@@ -190,7 +190,7 @@ class Account extends AuthAdminAPIController
                 throw new AdminAPIException('Enter TOTP code from new seed');
             }
 
-            if (!preg_match('/^[0-9]{6}$/', $totpCode)) {
+            if (!preg_match('/^\d{6}$/', $totpCode)) {
                 throw new AdminAPIException('Invalid TOTP code');
             }
 

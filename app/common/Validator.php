@@ -134,7 +134,7 @@ class Validator
      */
     public static function isValidPhone(mixed $phone): bool
     {
-        return is_string($phone) && preg_match('/^\+[0-9]{1,6}\.[0-9]{4,16}$/', $phone);
+        return is_string($phone) && preg_match('/^\+\d{1,6}\.\d{4,16}$/', $phone);
     }
 
     /**
@@ -143,7 +143,7 @@ class Validator
      */
     public static function isValidUsername(mixed $username): bool
     {
-        if (is_string($username) && preg_match('/^[a-zA-Z0-9]+[a-zA-Z0-9\-_]?[a-zA-Z0-9]+$/', $username)) {
+        if (is_string($username) && preg_match('/^[a-zA-Z\d]+[a-zA-Z\d\-_]?[a-zA-Z\d]+$/', $username)) {
             $len = strlen($username);
             if ($len >= 6 && $len <= 16) {
                 return true;
@@ -174,7 +174,7 @@ class Validator
         }
 
         $hostname = strtolower($hostname);
-        if (preg_match('/^[a-z0-9\-]+(\.[a-z0-9\-]+)*$/', $hostname)) {
+        if (preg_match('/^[a-z\d\-]+(\.[a-z\d\-]+)*$/', $hostname)) {
             return true; // Validated as Domain
         }
 
