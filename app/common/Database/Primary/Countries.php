@@ -72,4 +72,14 @@ class Countries extends AbstractAppTable
             throw new AppException('Failed to retrieve country');
         }
     }
+
+    /**
+     * @param string $code
+     * @return void
+     * @throws \Comely\Cache\Exception\CacheException
+     */
+    public static function DeleteCached(string $code): void
+    {
+        AppKernel::getInstance()->cache->delete(sprintf("cntr_%s", strtolower($code)));
+    }
 }
