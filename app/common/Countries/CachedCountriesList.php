@@ -27,6 +27,34 @@ namespace App\Common\Countries {
         public readonly int $cachedOn;
 
         /**
+         * @param bool $purgeAll
+         * @param bool|null $availableOnly
+         * @return void
+         * @throws CacheException
+         */
+        public static function Purge(bool $purgeAll = false, ?bool $availableOnly = null): void
+        {
+            $aK = AppKernel::getInstance();
+            $instances = [
+                "countries_list_all",
+                "countries_list_av1",
+                "countries_list_av0"
+            ];
+
+            if (!$purgeAll) {
+                $instances = [$instances[match ($availableOnly) {
+                    true => 1,
+                    false => 2,
+                    default => 0
+                }]];
+            }
+
+            foreach ($instances as $instanceId) {
+                $aK->cache->delete($instanceId);
+            }
+        }
+
+        /**
          * @param bool $useCache
          * @param bool|null $availableOnly
          * @return static
