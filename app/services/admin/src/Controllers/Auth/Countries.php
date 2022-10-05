@@ -65,7 +65,7 @@ class Countries extends AuthAdminAPIController
 
         try {
             $queryStr = sprintf(
-                'UPDATE ' . '`%s` SET `available`=? WHERE `countries` IN (%s)',
+                'UPDATE ' . '`%s` SET `available`=? WHERE `code` IN (%s)',
                 \App\Common\Database\Primary\Countries::TABLE,
                 implode(",", array_map(function ($code) {
                     return "'" . $code . "'";
