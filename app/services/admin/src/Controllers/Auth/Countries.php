@@ -58,7 +58,7 @@ class Countries extends AuthAdminAPIController
         }
 
         // Verify TOTP
-        $this->totpVerify($this->input()->getASCII("totp"));
+        $this->totpVerify($this->input()->getASCII("totp"), allowReuse: true);
 
         $db = $this->aK->db->primary();
         $db->beginTransaction();
@@ -82,6 +82,8 @@ class Countries extends AuthAdminAPIController
                 sprintf('%d countries moved to %s list', $moveCount, strtoupper($list)),
                 flags: ["config", "countries"]
             );
+
+            $db->commit();
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
@@ -137,7 +139,7 @@ class Countries extends AuthAdminAPIController
 
         // Alpha-2
         $codeShort = strtoupper(trim($this->input()->getASCII("codeShort")));
-        if (!preg_match('/^[A-Z]{2}$/', $code)) {
+        if (!preg_match('/^[A-Z]{2}$/', $codeShort)) {
             throw AdminAPIException::Param("codeShort", "Invalid ISO 3166-1 Alpha-2 code");
         }
 
@@ -148,7 +150,7 @@ class Countries extends AuthAdminAPIController
         }
 
         // Verify TOTP
-        $this->totpVerify($this->input()->getASCII("totp"));
+        $this->totpVerify($this->input()->getASCII("totp"), allowReuse: true);
 
         $db = $this->aK->db->primary();
         $db->beginTransaction();
@@ -157,7 +159,7 @@ class Countries extends AuthAdminAPIController
             $queryStr = sprintf(
                 'INSERT ' . 'INTO `%s` (`available`, `name`, `code`, `code_short`, `dial_code`) VALUES (:available, ' .
                 ':name, :code, :codeShort, :dialCode) ON DUPLICATE KEY UPDATE `available`=:available, `name`=:name, ' .
-                '`code`=:code, `codeShort`=:codeShort, `dialCode`=:dialCode',
+                '`code`=:code, `code_short`=:codeShort, `dial_code`=:dialCode',
                 \App\Common\Database\Primary\Countries::TABLE
             );
 
@@ -178,6 +180,8 @@ class Countries extends AuthAdminAPIController
                 sprintf('Country %s details updated', $code),
                 flags: ["config", "countries"]
             );
+
+            $db->commit();
         } catch (\Exception $e) {
             $db->rollBack();
             throw $e;
@@ -235,23 +239,13 @@ class Countries extends AuthAdminAPIController
      */
     private function getList(): void
     {
-        $useCache = true;
-        if ($this->input()->has("cached")) {
-            if ($this->input()->getUnsafe("cached") === false) {
-                $useCache = false;
-            }
-        }
-
-        $availableOnly = match (trim(strtolower($this->input()->getASCII("status")))) {
-            "available" => true,
-            "disabled" => false,
-            default => null,
-        };
-
-        $countries = CachedCountriesList::getInstance(useCache: $useCache, availableOnly: $availableOnly);
+        $countries = \App\Common\Database\Primary\Countries::Find()->query('WHERE 1 ORDER BY `name` ASC')->all();
 
         $this->status(true);
-        $this->response->set("countries", $countries);
+        $this->response->set("countries", [
+            "count" => count($countries),
+            "countries" => $countries
+        ]);
     }
 
     /**
