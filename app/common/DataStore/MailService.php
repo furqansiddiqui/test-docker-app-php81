@@ -9,7 +9,8 @@ namespace App\Common\DataStore;
  */
 enum MailService: string
 {
-    case DISABLED = "disabled";
+    case DISABLED = "disabled"; // Queue also disabled
+    case PAUSED = "paused"; // E-mails will be queued
     case SMTP = "smtp";
     case MAILGUN = "mailgun";
     case SENDGRID = "sendgrid";

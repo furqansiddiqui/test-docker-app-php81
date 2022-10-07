@@ -67,16 +67,16 @@ class Mails extends AuthAdminAPIController
             throw $e;
         }
 
-        if ($this->mailConfig->setValue("service", $service)) {
+        if ($this->mailConfig->setValue("service", $service, true)) {
             $changes++;
         }
 
         // Sender name and email
-        $nameValidator = Validator::Name(allowDashes: true);
+        $nameValidator = Validator::Name(maxLength: 32, allowDashes: true);
         $emailValidator = Validator::EmailAddress();
 
         try {
-            if ($this->mailConfig->setValue("senderName", $nameValidator->getValidated($this->input()->getUnsafe("senderName")))) {
+            if ($this->mailConfig->setValue("senderName", $nameValidator->getValidated($this->input()->getUnsafe("senderName")), true)) {
                 $changes++;
             }
         } catch (ValidatorException $e) {
@@ -90,7 +90,7 @@ class Mails extends AuthAdminAPIController
         }
 
         try {
-            if ($this->mailConfig->setValue("senderEmail", $emailValidator->getValidated($this->input()->getUnsafe("senderEmail")))) {
+            if ($this->mailConfig->setValue("senderEmail", $emailValidator->getValidated($this->input()->getUnsafe("senderEmail")), true)) {
                 $changes++;
             }
         } catch (ValidatorException $e) {
@@ -184,8 +184,8 @@ class Mails extends AuthAdminAPIController
             $hostname = $this->input()->getASCII("hostname");
             if (!$hostname) {
                 throw new AdminAPIException('SMTP hostname is required');
-            } elseif (strlen($hostname) > 40) {
-                throw new AdminAPIException('SMTP hostname cannot exceed 40 bytes');
+            } elseif (strlen($hostname) > 64) {
+                throw new AdminAPIException('SMTP hostname cannot exceed 64 bytes');
             } elseif (!Validator::isValidHostname($hostname)) {
                 throw new AdminAPIException('Invalid SMTP hostname');
             }
@@ -221,8 +221,8 @@ class Mails extends AuthAdminAPIController
                 throw new AdminAPIException('SMTP username is required');
             } elseif ($usernameLen < 4) {
                 throw new AdminAPIException('SMTP username must be 4 bytes long');
-            } elseif ($usernameLen > 32) {
-                throw new AdminAPIException('SMTP username must not exceed 32 bytes');
+            } elseif ($usernameLen > 64) {
+                throw new AdminAPIException('SMTP username must not exceed 64 bytes');
             } elseif (!Validator::isASCII($username, "-.=+:")) {
                 throw new AdminAPIException('SMTP username contains an illegal character');
             }
@@ -243,8 +243,8 @@ class Mails extends AuthAdminAPIController
                 throw new AdminAPIException('SMTP password is required');
             } elseif ($passwordLen < 4) {
                 throw new AdminAPIException('SMTP password must be 4 bytes long');
-            } elseif ($passwordLen > 32) {
-                throw new AdminAPIException('SMTP password must not exceed 32 bytes');
+            } elseif ($passwordLen > 64) {
+                throw new AdminAPIException('SMTP password must not exceed 64 bytes');
             }
         } catch (AdminAPIException $e) {
             $e->setParam("password");
@@ -326,9 +326,17 @@ class Mails extends AuthAdminAPIController
 
     /**
      * @return void
+     * @throws AdminAPIException
+     * @throws AppException
      */
     public function get(): void
     {
+        if (!$this->admin->privileges()->isRoot()) {
+            if (!$this->admin->privileges()->viewConfig) {
+                throw new AdminAPIException('You do not have privilege to view configuration');
+            }
+        }
+
         $this->status(true);
         $this->response->set("config", $this->mailConfig);
     }

@@ -94,3 +94,4 @@ echo -e "";
 
 sleep 10;
 ./engine.sh install
+./engine.sh default_config
