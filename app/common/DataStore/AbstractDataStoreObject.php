@@ -6,6 +6,7 @@ namespace App\Common\DataStore;
 use App\Common\AppKernel;
 use App\Common\Database\Primary\DataStore;
 use App\Common\Exception\AppException;
+use App\Common\Exception\AppModelNotFoundException;
 use Comely\Buffer\Buffer;
 use Comely\Security\Exception\CipherException;
 
@@ -81,7 +82,7 @@ abstract class AbstractDataStoreObject
                 ->row();
 
             if (!$query || !isset($query["data"]) || !is_string($query["data"])) {
-                throw new AppException(sprintf('DataStore object "%s" not found in DB', static::DB_KEY));
+                throw new AppModelNotFoundException(sprintf('DataStore object "%s" not found in DB', static::DB_KEY));
             }
 
             $bytes = new Buffer($query["data"]);
