@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Services\Admin\Controllers\Auth\PublicAPI;
+namespace App\Services\Admin\Controllers\Auth\PublicApi;
 
 use App\Common\DataStore\PublicAPIAccess;
 use App\Common\Validator;
@@ -11,7 +11,7 @@ use Comely\Cache\Exception\CacheException;
 
 /**
  * Class Access
- * @package App\Services\Admin\Controllers\Auth\PublicAPI
+ * @package App\Services\Admin\Controllers\Auth\PublicApi
  */
 class Access extends AuthAdminAPIController
 {
