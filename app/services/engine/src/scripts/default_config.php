@@ -5,6 +5,7 @@ namespace bin;
 
 use App\Common\DataStore\MailConfig;
 use App\Common\DataStore\MailService;
+use App\Common\DataStore\PublicAPIAccess;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
 use App\Common\Kernel\CLI\AbstractCLIScript;
@@ -15,6 +16,13 @@ use App\Common\Kernel\CLI\AbstractCLIScript;
  */
 class default_config extends AbstractCLIScript
 {
+    public const DISPLAY_HEADER = false;
+
+    /**
+     * @return void
+     * @throws AppException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
     public function exec(): void
     {
         $this->print("");
@@ -35,6 +43,21 @@ class default_config extends AbstractCLIScript
             $mailConfig->timeOut = 1;
             $mailConfig->serverName = $this->aK->config->public->domain;
             $mailConfig->save();
+            $this->print("{green}Created");
+        } catch (AppException) {
+            $this->print("{red}Error");
+        }
+
+        // Public API Access
+        $this->inline("\t{cyan}Public API Access{/} {grey}...{/} ");
+
+        try {
+            PublicAPIAccess::getInstance(useCache: false);
+            $this->print("{green}Exists");
+        } catch (AppModelNotFoundException) {
+            $pAC = new PublicAPIAccess();
+            $pAC->globalStatus = false;
+            $pAC->save();
             $this->print("{green}Created");
         } catch (AppException) {
             $this->print("{red}Error");
