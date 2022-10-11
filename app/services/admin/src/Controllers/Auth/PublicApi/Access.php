@@ -24,7 +24,7 @@ class Access extends AuthAdminAPIController
     protected function authCallback(): void
     {
         try {
-            $this->pIA = PublicAPIAccess::getInstance(true);
+            $this->pIA = PublicAPIAccess::getInstance(useCache: false);
         } catch (\Exception $e) {
             $this->aK->errors->trigger($e, E_USER_WARNING);
             $this->pIA = new PublicAPIAccess();
