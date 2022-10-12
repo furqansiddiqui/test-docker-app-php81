@@ -137,13 +137,43 @@ class Caching extends AuthAdminAPIController
 
     /**
      * @return void
+     * @throws CacheException
+     */
+    private function getStatus(): void
+    {
+        $isConnected = false;
+        if ($this->aK->config->cache->engine) {
+            try {
+                $this->aK->cache->connect($errors);
+                $isConnected = true;
+            } catch (CacheException $e) {
+                if ($errors) {
+                    foreach ($errors as $error) {
+                        $this->aK->errors->trigger($error, E_USER_WARNING);
+                    }
+                }
+
+                throw $e;
+            }
+        }
+
+        $this->status(true);
+        $this->response->set("isConnected", $isConnected);
+    }
+
+    /**
+     * @return void
      * @throws AdminAPIException
+     * @throws CacheException
      */
     public function get(): void
     {
         switch (strtolower($this->input()->getASCII("action"))) {
             case "objects":
                 $this->checkObjects();
+                return;
+            case "status":
+                $this->getStatus();
                 return;
             default:
                 $this->cacheConfig();
