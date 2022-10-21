@@ -146,7 +146,7 @@ class System extends AuthAdminAPIController
             throw $e;
         }
 
-        if ($this->sysConfig->setValue("adminSessionsPurge", $adminLogsPurge)) {
+        if ($this->sysConfig->setValue("adminSessionsPurge", $adminSessionsPurge)) {
             $changes++;
         }
 
