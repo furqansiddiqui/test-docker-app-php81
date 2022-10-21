@@ -21,7 +21,7 @@ namespace App\Common\DataStore {
     class OAuth2Config
     {
         /** @var bool */
-        public bool $status;
+        public bool $status = false;
         /** @var array */
         private array $configs = [];
 
