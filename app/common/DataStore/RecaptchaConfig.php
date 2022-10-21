@@ -21,13 +21,13 @@ namespace App\Common\DataStore {
     {
         /**
          * @param RecaptchaStatus $status
-         * @param string $publicKey
-         * @param string $privateKey
+         * @param string|null $publicKey
+         * @param string|null $privateKey
          */
         public function __construct(
             public readonly RecaptchaStatus $status,
-            public readonly string          $publicKey,
-            public readonly string          $privateKey
+            public readonly ?string         $publicKey = null,
+            public readonly ?string         $privateKey = null
         )
         {
         }
