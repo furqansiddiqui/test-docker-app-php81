@@ -17,6 +17,7 @@ namespace App\Common\DataStore {
     /**
      * Class OAuth2Config
      * @package App\Common\DataStore
+     * @property array $vendors
      */
     class OAuth2Config
     {

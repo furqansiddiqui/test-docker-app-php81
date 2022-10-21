@@ -38,10 +38,11 @@ class Program extends AuthAdminAPIController
     {
         if (!$this->programConfig->oAuth2) {
             $this->programConfig->oAuth2 = new OAuth2Config();
+            $this->programConfig->oAuth2->vendors = [];
         }
 
         foreach (OAuth2Vendors::cases() as $vendor) {
-            $this->programConfig->oAuth2->get($vendor);
+            $this->programConfig->oAuth2->vendors[$vendor->value] = $this->programConfig->oAuth2->get($vendor);
         }
 
         $this->status(true);
