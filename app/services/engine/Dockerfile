@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y software-properties-common curl zip git
 RUN add-apt-repository ppa:ondrej/php
 RUN apt-get update
 RUN apt-get install -y php8.1 php8.1-cli php8.1-pdo php8.1-mysql php8.1-bcmath php8.1-gmp php8.1-mbstring php8.1-curl
+RUN apt-get install -y mariadb-client
 
 WORKDIR /root
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
@@ -24,7 +25,6 @@ COPY ./config config/
 COPY ./app/common common/
 COPY ./app/services/engine/composer.json composer.json
 COPY ./app/services/engine/src src/
-
 
 USER root
 RUN chown -R comely-io:comely-io /home/comely-io/

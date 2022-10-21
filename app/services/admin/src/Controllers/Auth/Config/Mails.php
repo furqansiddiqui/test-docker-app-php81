@@ -27,7 +27,7 @@ class Mails extends AuthAdminAPIController
     protected function authCallback(): void
     {
         try {
-            $this->mailConfig = MailConfig::getInstance(true);
+            $this->mailConfig = MailConfig::getInstance(false);
         } catch (\Exception $e) {
             $this->aK->errors->trigger($e, E_USER_WARNING);
             $this->mailConfig = new MailConfig();

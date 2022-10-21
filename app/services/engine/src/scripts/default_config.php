@@ -5,7 +5,9 @@ namespace bin;
 
 use App\Common\DataStore\MailConfig;
 use App\Common\DataStore\MailService;
+use App\Common\DataStore\ProgramConfig;
 use App\Common\DataStore\PublicAPIAccess;
+use App\Common\DataStore\SystemConfig;
 use App\Common\Exception\AppException;
 use App\Common\Exception\AppModelNotFoundException;
 use App\Common\Kernel\CLI\AbstractCLIScript;
@@ -27,6 +29,34 @@ class default_config extends AbstractCLIScript
     {
         $this->print("");
         $this->print("Checking for default configuration objects... ");
+
+        // System Configuration
+        $this->inline("\t{cyan}System Configuration{/} {grey}...{/} ");
+
+        try {
+            SystemConfig::getInstance(useCache: false);
+            $this->print("{green}Exists");
+        } catch (AppModelNotFoundException) {
+            $sC = new SystemConfig();
+            $sC->save();
+            $this->print("{green}Created");
+        } catch (AppException) {
+            $this->print("{red}Error");
+        }
+
+        // Program Configuration
+        $this->inline("\t{cyan}Program Configuration{/} {grey}...{/} ");
+
+        try {
+            ProgramConfig::getInstance(useCache: false);
+            $this->print("{green}Exists");
+        } catch (AppModelNotFoundException) {
+            $pC = new ProgramConfig();
+            $pC->save();
+            $this->print("{green}Created");
+        } catch (AppException) {
+            $this->print("{red}Error");
+        }
 
         // Mailer Configuration
         $this->inline("\t{cyan}Mailer Configuration{/} {grey}...{/} ");
