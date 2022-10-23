@@ -31,6 +31,8 @@ class Directories
     private ?Directory $semaphore = null;
     /** @var Directory|null */
     private ?Directory $emails = null;
+    /** @var Directory|null */
+    private ?Directory $backups = null;
 
     use NoDumpTrait;
     use NotCloneableTrait;
@@ -121,6 +123,19 @@ class Directories
         }
 
         return $this->emails;
+    }
+
+    /**
+     * @return Directory
+     * @throws AppDirException
+     */
+    public function backups(): Directory
+    {
+        if (!$this->backups) {
+            $this->backups = $this->dir("backups", "/storage/backups", true);
+        }
+
+        return $this->backups;
     }
 
     /**

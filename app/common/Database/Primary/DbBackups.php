@@ -26,6 +26,7 @@ class DbBackups extends AbstractAppTable
         $cols->defaults("ascii", "ascii_general_ci");
 
         $cols->int("id")->bytes(4)->unSigned()->autoIncrement();
+        $cols->int("manual")->bytes(1)->unSigned()->default(0);
         $cols->string("db")->length(32);
         $cols->int("epoch")->bytes(4)->unSigned();
         $cols->string("filename")->fixed(40);

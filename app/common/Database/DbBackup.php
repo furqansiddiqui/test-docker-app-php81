@@ -16,6 +16,8 @@ class DbBackup extends AbstractAppModel
 
     /** @var int */
     public int $id;
+    /** @var int */
+    public int $manual;
     /** @var string */
     public string $db;
     /** @var int */
