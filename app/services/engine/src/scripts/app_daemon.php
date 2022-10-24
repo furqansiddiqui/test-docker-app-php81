@@ -48,6 +48,7 @@ class app_daemon extends AbstractCLIScript
 
                 // Set cron to run next hour at the top
                 $nextCronExec = $timeStamp + (3600 - ($timeStamp % 3600));
+                sleep(20);
                 continue;
             }
 
@@ -62,6 +63,7 @@ class app_daemon extends AbstractCLIScript
                     $this->aK->cache->delete("app.engine.daemonQuery");
                 }
 
+                sleep(20);
                 continue;
             }
 
