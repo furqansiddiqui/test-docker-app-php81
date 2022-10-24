@@ -38,15 +38,8 @@ class app_daemon extends AbstractCLIScript
         Schema::Bind($db, 'App\Common\Database\Primary\DbBackups');
 
         // Sleep for 120 seconds
-        $this->print("{cyan}Starting in 120 seconds...{/}");
-        $this->print("{grey}");
-        for ($i = 0; $i < 120; $i++) {
-            $this->inline(".");
-            sleep(1);
-        }
-
-        $this->print("");
-        $this->print("");
+        $this->print("{cyan}Starting in 60 seconds...{/}");
+        sleep(60);
 
         // Bootstrap next cron exec
         $nextCronExec = time() - 1;
@@ -228,7 +221,7 @@ class app_daemon extends AbstractCLIScript
         }
 
         $this->print("");
-        $this->print("Pruning DB backups ... ");
+        $this->inline("Pruning DB backups ... ");
 
         $backupsDir = $this->aK->dirs->backups();
 
@@ -286,7 +279,7 @@ class app_daemon extends AbstractCLIScript
         $timeUnits = new TimeUnits();
         $timeLeft = $timeUnits->timeToUnits($dbBackupEvery - ($timeStamp - $lastDbBackupOn->epoch));
         $this->print(
-            sprintf("in {green}{invert} %d h %d m %s s{/}",
+            sprintf("in {green}{invert} %d h %d m %s s {/}",
                 $timeLeft->hours + ($timeLeft->days * 24),
                 $timeLeft->minutes,
                 $timeLeft->seconds)
