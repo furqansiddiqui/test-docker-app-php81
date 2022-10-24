@@ -7,6 +7,7 @@ use App\Common\AppKernel;
 use App\Common\Kernel\CLI;
 use App\Common\Kernel\ErrorHandler\ErrorMsg;
 use Comely\CLI\Abstract_CLI_Script;
+use Comely\Database\Schema;
 use Comely\Utils\OOP\OOP;
 use FurqanSiddiqui\SemaphoreEmulator\Exception\ConcurrentRequestBlocked;
 use FurqanSiddiqui\SemaphoreEmulator\Exception\ConcurrentRequestTimeout;
@@ -35,8 +36,8 @@ abstract class AbstractCLIScript extends Abstract_CLI_Script
     protected ?ResourceLock $semaphoreLock = null;
 
     /**
-     * AbstractCLIScript constructor.
      * @param CLI $cli
+     * @throws \Comely\Database\Exception\DbConnectionException
      */
     public function __construct(CLI $cli)
     {
@@ -44,6 +45,9 @@ abstract class AbstractCLIScript extends Abstract_CLI_Script
         parent::__construct($cli);
 
         $this->scriptClassname = OOP::baseClassName(static::class);
+
+        $db = $this->aK->db->primary();
+        Schema::Bind($db, 'App\Common\Database\Primary\ProcessTracker');
     }
 
     /**
