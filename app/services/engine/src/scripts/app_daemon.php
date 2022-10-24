@@ -214,7 +214,7 @@ class app_daemon extends AbstractCLIScript
             return;
         }
 
-        $this->inline("Pruning DB backups ... ");
+        $this->inline("{yellow}Pruning DB backups{/} ... ");
 
         $backupsDir = $this->aK->dirs->backups();
 
