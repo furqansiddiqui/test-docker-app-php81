@@ -254,7 +254,7 @@ class app_daemon extends AbstractCLIScript
 
         try {
             /** @var DbBackup $lastDbBackupOn */
-            $lastDbBackupOn = DbBackups::Find()->query('WHERE `manual`=0 ORDER BY `epoch` DESC LIMIT 1')->first();
+            $lastDbBackupOn = DbBackups::Find()->query('WHERE `manual`=0 ORDER BY `epoch` DESC')->limit(1)->first();
         } catch (ORM_ModelNotFoundException) {
             $lastDbBackupOn = new DbBackup(); // No backups in table, create first one now
             $lastDbBackupOn->epoch = $timeStamp - $dbBackupEvery;
