@@ -78,7 +78,7 @@ class CLI extends \Comely\CLI\CLI
             if ($this->processTracker) {
                 $this->processTracker->state = $isSuccess ? ProcessTracker::STATE_END_SUCCESS : ProcessTracker::STATE_END_ERROR;
                 $this->trackerSetLatestData();
-                $this->processTracker->query()->update();
+                $this->processTracker->query()->where("id", $this->processTracker->id)->update();
             }
 
             // Display Triggered Errors?
@@ -139,7 +139,7 @@ class CLI extends \Comely\CLI\CLI
         }
 
         $this->trackerSetLatestData();
-        $this->processTracker->query()->update();
+        $this->processTracker->query()->where("id", $this->processTracker->id)->update();
     }
 
     /**
@@ -151,7 +151,7 @@ class CLI extends \Comely\CLI\CLI
             return;
         }
 
-        $this->processTracker->cpuLoad = sys_getloadavg()[0] * 10 ^ 2;
+        $this->processTracker->cpuLoad = (int) sys_getloadavg()[0] * 10 ^ 2;
         $this->processTracker->memoryUsage = memory_get_usage();
         $this->processTracker->memoryUsageReal = memory_get_usage(true);
         $this->processTracker->peakMemoryUsage = memory_get_peak_usage();
