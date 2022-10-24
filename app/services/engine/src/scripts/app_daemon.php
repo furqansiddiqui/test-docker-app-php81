@@ -36,6 +36,17 @@ class app_daemon extends AbstractCLIScript
         $db = $this->aK->db->primary();
         Schema::Bind($db, 'App\Common\Database\Primary\DbBackups');
 
+        // Sleep for 120 seconds
+        $this->print("{cyan}Starting in 120 seconds...{/}");
+        $this->print("{grey}");
+        for ($i = 0; $i < 120; $i++) {
+            $this->inline(".");
+            sleep(1);
+        }
+
+        $this->print("");
+        $this->print("");
+
         // Bootstrap next cron exec
         $nextCronExec = time() - 1;
 
