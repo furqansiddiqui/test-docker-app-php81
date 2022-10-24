@@ -46,7 +46,7 @@ class app_daemon extends AbstractCLIScript
         $nextCronExec = time() - 1;
 
         while (true) {
-            $this->print("{grey}[" . date("d M Y H:i") . "]{/}");
+            $this->print("{grey}[" . date("d M Y H:i:s") . "]{/}");
 
             $timeStamp = time();
             if ($timeStamp >= $nextCronExec) {
@@ -190,6 +190,7 @@ class app_daemon extends AbstractCLIScript
         // Run Database Backups
         $this->runAutoDbBackups();
         $this->runDbBackupsPurges();
+        $this->print("");
 
         // Print Triggered Errors
         $this->printErrors();
@@ -213,7 +214,6 @@ class app_daemon extends AbstractCLIScript
             return;
         }
 
-        $this->print("");
         $this->inline("Pruning DB backups ... ");
 
         $backupsDir = $this->aK->dirs->backups();
@@ -291,13 +291,13 @@ class app_daemon extends AbstractCLIScript
         // Admin Sessions Purge
         $this->inline("Purging {magenta}Administration Sessions{/} ");
         if ($this->systemConfig->adminSessionsPurge > 0) {
-            $this->inline(sprintf("older than {green}{invert} %d {/} days.", $this->systemConfig->adminSessionsPurge));
+            $this->inline(sprintf("older than {green}{invert} %d {/} days:", $this->systemConfig->adminSessionsPurge));
             $query = $db->exec(
                 sprintf("DELETE " . "FROM `%s` WHERE `last_used_on`<=?", Sessions::TABLE),
                 [$timeStamp - ($this->systemConfig->adminSessionsPurge * 86400)]
             );
 
-            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}");
+            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}.");
         } else {
             $this->print("... {red}Disabled{/}");
         }
@@ -305,13 +305,13 @@ class app_daemon extends AbstractCLIScript
         // Admin Logs Purge
         $this->inline("Purging {magenta}Administration Log{/} ");
         if ($this->systemConfig->adminLogsPurge > 0) {
-            $this->inline(sprintf("older than {green}{invert} %d {/} days.", $this->systemConfig->adminLogsPurge));
+            $this->inline(sprintf("older than {green}{invert} %d {/} days:", $this->systemConfig->adminLogsPurge));
             $query = $db->exec(
                 sprintf("DELETE " . "FROM `%s` WHERE `time_stamp`<=?", Logs::TABLE),
                 [$timeStamp - ($this->systemConfig->adminLogsPurge * 86400)]
             );
 
-            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}");
+            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}.");
         } else {
             $this->print("... {red}Disabled{/}");
         }
@@ -319,8 +319,8 @@ class app_daemon extends AbstractCLIScript
         // Users Logs Purge
         $this->inline("Purging {magenta}Users Log{/} ");
         if ($this->systemConfig->usersLogsPurge > 0) {
-            $this->inline(sprintf("older than {green}{invert} %d {/} days.", $this->systemConfig->usersLogsPurge));
-            $this->print("\t {red}{invert} TODO {/}");
+            $this->inline(sprintf("older than {green}{invert} %d {/} days:", $this->systemConfig->usersLogsPurge));
+            $this->print("\t {red}{invert} TODO {/}.");
         } else {
             $this->print("... {red}Disabled{/}");
         }
@@ -329,7 +329,7 @@ class app_daemon extends AbstractCLIScript
         $apiLogsDb = $this->aK->db->apiLogs();
         $this->inline("Purging {magenta}Public API Queries{/} ");
         if ($this->systemConfig->publicAPIQueriesPurge > 0) {
-            $this->inline(sprintf("older than {green}{invert} %d {/} days.", $this->systemConfig->publicAPIQueriesPurge));
+            $this->inline(sprintf("older than {green}{invert} %d {/} days:", $this->systemConfig->publicAPIQueriesPurge));
             // $pruneTs = $timeStamp - ($this->systemConfig->publicAPIQueriesPurge * 86400);
             $pruneTs = $timeStamp - 300; //Todo: temp 5-min setting
             $pruneFromId = $apiLogsDb->fetch(
@@ -351,9 +351,9 @@ class app_daemon extends AbstractCLIScript
                     [$pruneFromId]
                 );
 
-                $this->print("\t {cyan}{invert} " . $delQP->rows() . " {/} {yellow}{invert} " . $delQ->rows() . " {/}");
+                $this->print("\t {cyan}{invert} " . $delQP->rows() . " {/} {yellow}{invert} " . $delQ->rows() . " {/}.");
             } else {
-                $this->print("\t {cyan}{invert} 0 {/}");
+                $this->print("\t {cyan}{invert} 0 {/}.");
             }
         } else {
             $this->print("... {red}Disabled{/}");
@@ -362,7 +362,7 @@ class app_daemon extends AbstractCLIScript
         // Public API Sessions
         $this->inline("Purging {magenta}Public API Sessions{/} ");
         if ($this->systemConfig->publicAPISessionsPurge > 0) {
-            $this->inline(sprintf("older than {green}{invert} %d {/} days.", $this->systemConfig->publicAPISessionsPurge));
+            $this->inline(sprintf("older than {green}{invert} %d {/} days:", $this->systemConfig->publicAPISessionsPurge));
             $query = $db->exec(
                 sprintf(
                     "SET FOREIGN_KEY_CHECKS=0; DELETE FROM `%s` WHERE `last_used_on`<=?; SET FOREIGN_KEY_CHECKS=1;",
@@ -371,7 +371,7 @@ class app_daemon extends AbstractCLIScript
                 [$timeStamp - ($this->systemConfig->adminLogsPurge * 86400)]
             );
 
-            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}");
+            $this->print("\t {cyan}{invert} " . $query->rows() . " {/}.");
         } else {
             $this->print("... {red}Disabled{/}");
         }
