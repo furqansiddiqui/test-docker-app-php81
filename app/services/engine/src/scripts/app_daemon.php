@@ -16,6 +16,7 @@ use App\Common\Kernel\CLI\AbstractCLIScript;
 use App\Common\Kernel\Databases;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema;
+use Comely\Database\Server\DbCredentials;
 use Comely\Filesystem\Exception\PathException;
 use Comely\Filesystem\Exception\PathOpException;
 use Comely\Utils\Time\TimeUnits;
@@ -99,33 +100,37 @@ class app_daemon extends AbstractCLIScript
         $this->inline($tabs . "{cyan}Creating DB backup ");
 
         $dbId = strtolower($dbId);
-        $dbConfig = null;
+        $dbCred = null;
         $dbConfigs = $this->aK->config->db->getAll();
-        foreach ($dbConfigs as $label => $params) {
+        /**
+         * @var string $label
+         * @var DbCredentials $cred
+         */
+        foreach ($dbConfigs as $label => $cred) {
             if (strtolower($label) === $dbId) {
-                $dbConfig = $params;
+                $dbCred = $cred;
                 break;
             }
 
-            if (strtolower($params["name"]) === $dbId) {
-                $dbConfig = $params;
+            if (strtolower($cred->dbname) === $dbId) {
+                $dbCred = $cred;
                 break;
             }
         }
 
-        if (!isset($dbConfig)) {
+        if (!isset($dbCred)) {
             throw new AppException(sprintf('Could not retrieve configuration for DB "%s"', $dbId));
         }
 
-        $this->inline("{green}{invert} " . $dbConfig["name"] . " {/} ... ");
+        $this->inline("{green}{invert} " . $dbCred->dbname . " {/} ... ");
 
-        if ($dbConfig["driver"] !== "mysql") {
+        if ($dbCred->driver !== "mysql") {
             throw new AppException('Database driver is not MySQL');
         }
 
-        $dbPassword = $dbConfig["password"] ?? $this->aK->config->env->mysqlRootPassword ?? null;
+        $dbPassword = $dbCred->password() ?? $this->aK->config->env->mysqlRootPassword ?? null;
         if (!$dbPassword) {
-            throw new AppException(sprintf('No password defined for MySQL user "%s"', $dbConfig["username"]));
+            throw new AppException(sprintf('No password defined for MySQL user "%s"', $dbCred->username()));
         }
 
         $backupsDir = $this->aK->dirs->backups();
@@ -135,10 +140,10 @@ class app_daemon extends AbstractCLIScript
 
         try {
             $epoch = time();
-            $filename = hash("sha1", sprintf("%s_%d", $dbConfig["name"], $epoch));
-            $backupCmd = "/usr/bin/mysqldump -h " . $dbConfig["host"] .
-                " -u " . $dbConfig["username"] . " --password=" . $dbPassword . " " .
-                $dbConfig["name"] . " > " . $filename . ".sql";
+            $filename = hash("sha1", sprintf("%s_%d", $dbCred->dbname, $epoch));
+            $backupCmd = "/usr/bin/mysqldump -h " . $dbCred->host .
+                " -u " . $dbCred->username() . " --password=" . $dbPassword . " " .
+                $dbCred->dbname . " > " . $filename . ".sql";
 
             exec($backupCmd, result_code: $dumpResultCode);
             if ($dumpResultCode !== 0) {
@@ -165,7 +170,7 @@ class app_daemon extends AbstractCLIScript
             $backupEntry = new DbBackup();
             $backupEntry->id = 0;
             $backupEntry->manual = $isAuto ? 0 : 1;
-            $backupEntry->db = $dbConfig["name"];
+            $backupEntry->db = $dbCred->dbname;
             $backupEntry->epoch = $epoch;
             $backupEntry->filename = $filename;
             $backupEntry->size = $filesize;
