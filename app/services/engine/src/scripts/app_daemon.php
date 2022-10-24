@@ -40,39 +40,33 @@ class app_daemon extends AbstractCLIScript
         // Sleep for 120 seconds
         $this->print("{cyan}Starting in 60 seconds...{/}");
         sleep(60);
+        $this->print("");
 
         // Bootstrap next cron exec
         $nextCronExec = time() - 1;
 
         while (true) {
+            $this->print("{grey}[" . date("d M Y H:i") . "]{/}");
+
             $timeStamp = time();
             if ($timeStamp >= $nextCronExec) {
-                $this->print("");
-                $this->print("");
                 $this->runSystemCron();
 
                 // Set cron to run next hour at the top
                 $nextCronExec = $timeStamp + (3600 - ($timeStamp % 3600));
-                sleep(20);
-                continue;
-            }
-
-            $dQ = $this->aK->cache->get("app.engine.daemonQuery");
-            if ($dQ) {
-                try {
-                    if ($dQ instanceof DbBackupQuery && $dQ->dbName) {
-                        $this->print("");
-                        $this->createDbBackup(false, $dQ->dbName);
+            } else {
+                $dQ = $this->aK->cache->get("app.engine.daemonQuery");
+                if ($dQ) {
+                    try {
+                        if ($dQ instanceof DbBackupQuery && $dQ->dbName) {
+                            $this->createDbBackup(false, $dQ->dbName);
+                        }
+                    } finally {
+                        $this->aK->cache->delete("app.engine.daemonQuery");
                     }
-                } finally {
-                    $this->aK->cache->delete("app.engine.daemonQuery");
                 }
-
-                sleep(20);
-                continue;
             }
 
-            $this->inline(".");
             $this->updateExecTracker();
             sleep(20);
         }
@@ -185,7 +179,6 @@ class app_daemon extends AbstractCLIScript
      */
     private function runSystemCron(): void
     {
-        $this->print("{grey}[" . date("d M Y H:i") . "]{/}");
         $this->inline("Loading {yellow}{invert} SystemConfig {/} instance from Cache {grey}...{/} ");
         $this->systemConfig = SystemConfig::getInstance(useCache: true);
         $this->print("{green}OK{/}");
