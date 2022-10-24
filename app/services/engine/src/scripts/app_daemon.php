@@ -10,9 +10,14 @@ use App\Common\Database\Primary\DbBackups;
 use App\Common\Database\PublicAPI\Queries;
 use App\Common\Database\PublicAPI\QueriesPayload;
 use App\Common\DataStore\SystemConfig;
+use App\Common\Engine\DbBackupQuery;
+use App\Common\Exception\AppException;
 use App\Common\Kernel\CLI\AbstractCLIScript;
+use App\Common\Kernel\Databases;
 use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema;
+use Comely\Filesystem\Exception\PathException;
+use Comely\Filesystem\Exception\PathOpException;
 use Comely\Utils\Time\TimeUnits;
 
 /**
@@ -37,22 +42,136 @@ class app_daemon extends AbstractCLIScript
         while (true) {
             $timeStamp = time();
             if ($timeStamp >= $nextCronExec) {
+                $this->print("");
+                $this->print("");
                 $this->runSystemCron();
 
                 // Set cron to run next hour at the top
                 $nextCronExec = $timeStamp + (3600 - ($timeStamp % 3600));
+                continue;
             }
 
+            $dQ = $this->aK->cache->get("app.engine.daemonQuery");
+            if ($dQ) {
+                try {
+                    if ($dQ instanceof DbBackupQuery && $dQ->dbName) {
+                        $this->print("");
+                        $this->createDbBackup(false, $dQ->dbName);
+                    }
+                } finally {
+                    $this->aK->cache->delete("app.engine.daemonQuery");
+                }
 
+                continue;
+            }
+
+            $this->inline(".");
+            $this->updateExecTracker();
+            sleep(20);
         }
     }
 
-    private function createDbBackup(bool $isAuto, string $tabs = "\t")
+    /**
+     * @param bool $isAuto
+     * @param string $dbId
+     * @return void
+     * @throws AppException
+     * @throws \App\Common\Exception\AppDirException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    private function createDbBackup(bool $isAuto, string $dbId): void
     {
-        $backupsDir = $this->aK->dirs->backups();
+        $tabs = str_repeat("\t", 1);
+        $this->print("");
+        $this->inline($tabs . "{cyan}Creating DB backup ");
 
+        $dbId = strtolower($dbId);
+        $dbConfig = null;
+        $dbConfigs = $this->aK->config->db->getAll();
+        foreach ($dbConfigs as $label => $params) {
+            if (strtolower($label) === $dbId) {
+                $dbConfig = $params;
+                break;
+            }
+
+            if (strtolower($params["name"]) === $dbId) {
+                $dbConfig = $params;
+                break;
+            }
+        }
+
+        if (!isset($dbConfig)) {
+            throw new AppException(sprintf('Could not retrieve configuration for DB "%s"', $dbId));
+        }
+
+        $this->inline("{green}{invert} " . $dbConfig["name"] . " {/} ... ");
+
+        if ($dbConfig["driver"] !== "mysql") {
+            throw new AppException('Database driver is not MySQL');
+        }
+
+        $dbPassword = $dbConfig["password"] ?? $this->aK->config->env->mysqlRootPassword ?? null;
+        if (!$dbPassword) {
+            throw new AppException(sprintf('No password defined for MySQL user "%s"', $dbConfig["username"]));
+        }
+
+        $backupsDir = $this->aK->dirs->backups();
+        if (!chdir($backupsDir->path())) {
+            throw new AppException('Cannot change to backups working directory');
+        }
+
+        try {
+            $epoch = time();
+            $filename = hash("sha1", sprintf("%s_%d", $dbConfig["name"], $epoch));
+            $backupCmd = "/usr/bin/mysqldump -h " . $dbConfig["host"] .
+                " -u " . $dbConfig["username"] . " --password=" . $dbPassword . " " .
+                $dbConfig["name"] . " > " . $filename . ".sql";
+
+            exec($backupCmd, result_code: $dumpResultCode);
+            if ($dumpResultCode !== 0) {
+                throw new \RuntimeException('Failed to generate MySQL dump');
+            }
+
+            $archiveCmd = "zip ";
+            if ($this->systemConfig->dbBackupPassword) {
+                $archiveCmd .= "-P " . $this->systemConfig->dbBackupPassword . " ";
+            }
+
+            $archiveCmd .= $filename . ".zip " . $filename . ".sql";
+            exec($archiveCmd, result_code: $zipCode);
+            if ($zipCode !== 0) {
+                throw new \RuntimeException('Failed to create compressed archive of MySQL dump');
+            }
+
+            unlink($filename . ".sql");
+            $filesize = @filesize($backupsDir->suffix($filename . ".zip"));
+            if (!$filesize) {
+                throw new \RuntimeException('Could not retrieve final filesize in bytes');
+            }
+
+            $backupEntry = new DbBackup();
+            $backupEntry->id = 0;
+            $backupEntry->manual = $isAuto ? 0 : 1;
+            $backupEntry->db = $dbConfig["name"];
+            $backupEntry->epoch = $epoch;
+            $backupEntry->filename = $filename;
+            $backupEntry->size = $filesize;
+            $backupEntry->query()->insert();
+        } catch (\Exception $e) {
+            @unlink($filename . ".sql");
+            throw $e;
+        }
+
+        $this->print("{green}Success");
     }
 
+    /**
+     * @return void
+     * @throws AppException
+     * @throws \App\Common\Exception\AppDirException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Filesystem\Exception\FilesystemException
+     */
     private function runSystemCron(): void
     {
         $this->print("{grey}[" . date("d M Y H:i") . "]{/}");
@@ -64,6 +183,10 @@ class app_daemon extends AbstractCLIScript
         // Run the Pruning
         $this->runPurges();
 
+        // Run Database Backups
+        $this->runAutoDbBackups();
+        $this->runDbBackupsPurges();
+
         // Print Triggered Errors
         $this->printErrors();
 
@@ -72,7 +195,52 @@ class app_daemon extends AbstractCLIScript
         $this->aK->errors->flush();
     }
 
-    private function runDbBackups(): void
+    /**
+     * @return void
+     * @throws PathException
+     * @throws PathOpException
+     * @throws \App\Common\Exception\AppDirException
+     * @throws \Comely\Database\Exception\DatabaseException
+     * @throws \Comely\Filesystem\Exception\FilesystemException
+     */
+    private function runDbBackupsPurges(): void
+    {
+        if ($this->systemConfig->dbBackupKeepLast < 2) {
+            return;
+        }
+
+        $this->print("");
+        $this->print("Pruning DB backups ... ");
+
+        $backupsDir = $this->aK->dirs->backups();
+
+        try {
+            $dbBackups = DbBackups::Find()->query('WHERE 1 ORDER BY `id` DESC')->all();
+        } catch (ORM_ModelNotFoundException) {
+            $dbBackups = [];
+        }
+
+        $deleted = 0;
+        $dbBackups = array_slice($dbBackups, $this->systemConfig->dbBackupKeepLast);
+        if ($dbBackups) {
+            /** @var DbBackup $dbBackup */
+            foreach ($dbBackups as $dbBackup) {
+                $backupsDir->delete($dbBackup->filename . ".zip");
+                $dbBackup->query()->delete();
+                $deleted++;
+            }
+        }
+
+        $this->print("{red}{invert} " . $deleted . " {/}");
+    }
+
+    /**
+     * @return void
+     * @throws AppException
+     * @throws \App\Common\Exception\AppDirException
+     * @throws \Comely\Database\Exception\DatabaseException
+     */
+    private function runAutoDbBackups(): void
     {
         $this->print("");
         $this->inline("{cyan}Auto Database Backups{/} ... ");
@@ -93,7 +261,7 @@ class app_daemon extends AbstractCLIScript
         }
 
         if (($timeStamp - $lastDbBackupOn->epoch) >= ($dbBackupEvery - 60)) {
-            $this->createDbBackup(isAuto: true);
+            $this->createDbBackup(true, Databases::PRIMARY);
             return;
         }
 
