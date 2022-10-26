@@ -25,6 +25,8 @@ class Privileges
     public bool $manageUsers = false;
     /** @var bool */
     public bool $viewAPIQueriesPayload = false;
+    /** @var bool */
+    public bool $downloadDbBackups = false;
 
     /**
      * @param Administrator $admin
@@ -40,7 +42,8 @@ class Privileges
             "viewAdminsLogs" => self::PrivilegeDetail("View other administrators activity log", $privileges->viewAdminsLogs),
             "viewUsers" => self::PrivilegeDetail("Browse and view users information", $privileges->viewUsers),
             "manageUsers" => self::PrivilegeDetail("Make changes to a user account", $privileges->manageUsers, isSensitive: true),
-            "viewAPIQueriesPayload" => self::PrivilegeDetail("View API queries and payloads", $privileges->viewAPIQueriesPayload, isCritical: true)
+            "viewAPIQueriesPayload" => self::PrivilegeDetail("View API queries and payloads", $privileges->viewAPIQueriesPayload, isCritical: true),
+            "downloadDbBackups" => self::PrivilegeDetail("Download database backups", $privileges->viewAPIQueriesPayload, isCritical: true),
         ];
     }
 
