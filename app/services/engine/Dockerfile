@@ -5,6 +5,7 @@ ARG HOST_UID=1000
 ARG HOST_GID=1000
 
 RUN apt-get update && apt-get install -y software-properties-common curl zip git
+RUN apt-get install -y supervisor
 RUN add-apt-repository ppa:ondrej/php
 RUN apt-get update
 RUN apt-get install -y php8.1 php8.1-cli php8.1-pdo php8.1-mysql php8.1-bcmath php8.1-gmp php8.1-mbstring php8.1-curl
@@ -14,6 +15,7 @@ WORKDIR /root
 RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
 RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
+COPY ./app/services/engine/supervisord.conf /etc/supervisord.conf
 COPY ./app/services/engine/entrypoint.sh /root/entrypoint.sh
 
 RUN groupadd -g $HOST_GID comely-io
