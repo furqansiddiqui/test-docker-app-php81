@@ -18,7 +18,6 @@ use Comely\Database\Exception\ORM_ModelNotFoundException;
 use Comely\Database\Schema;
 use Comely\Database\Server\DbCredentials;
 use Comely\Filesystem\Exception\PathException;
-use Comely\Filesystem\Exception\PathOpException;
 use Comely\Utils\Time\TimeUnits;
 
 /**
@@ -175,7 +174,6 @@ class app_daemon extends AbstractCLIScript
      * @throws AppException
      * @throws \App\Common\Exception\AppDirException
      * @throws \Comely\Database\Exception\DatabaseException
-     * @throws \Comely\Filesystem\Exception\FilesystemException
      */
     private function runSystemCron(): void
     {
@@ -202,11 +200,10 @@ class app_daemon extends AbstractCLIScript
 
     /**
      * @return void
-     * @throws PathException
-     * @throws PathOpException
      * @throws \App\Common\Exception\AppDirException
-     * @throws \Comely\Database\Exception\DatabaseException
-     * @throws \Comely\Filesystem\Exception\FilesystemException
+     * @throws \Comely\Database\Exception\ORM_Exception
+     * @throws \Comely\Database\Exception\ORM_ModelQueryException
+     * @throws \Comely\Database\Exception\SchemaTableException
      */
     private function runDbBackupsPurges(): void
     {
@@ -229,7 +226,11 @@ class app_daemon extends AbstractCLIScript
         if ($dbBackups) {
             /** @var DbBackup $dbBackup */
             foreach ($dbBackups as $dbBackup) {
-                $backupsDir->delete($dbBackup->filename . ".zip");
+                try {
+                    $backupsDir->delete($dbBackup->filename . ".zip");
+                } catch (PathException) {
+                }
+
                 $dbBackup->query()->delete();
                 $deleted++;
             }
